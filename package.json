@@ -1,0 +1,29 @@
+{
+  "name": "interactive-canvas-engine",
+  "private": true,
+  "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
+    "test": "pnpm --filter @canvas-engine/document test",
+    "typecheck": "pnpm --filter @canvas-engine/document typecheck",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check ."
+  },
+  "devDependencies": {
+    "lint-staged": "16.2.0",
+    "oxfmt": "0.59.0",
+    "oxlint": "1.74.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,mjs,cjs}": [
+      "oxfmt",
+      "oxlint --fix"
+    ]
+  },
+  "engines": {
+    "node": "24.18.0",
+    "pnpm": "11.15.1"
+  },
+  "packageManager": "pnpm@11.15.1"
+}
