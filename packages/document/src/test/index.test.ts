@@ -10,6 +10,7 @@ describe("createDocument", () => {
     expect(doc.metadata.name).toEqual("Test Document");
     expect(doc.children.size).toEqual(doc.nodeReferences.size);
     expect([...doc.children.keys()]).toEqual([]);
+    expect(doc.activeNodeId).toBe("root");
     expect(doc.activeNode).toEqual(doc);
   });
 
@@ -23,6 +24,7 @@ describe("createDocument", () => {
     const fromIndex = doc.nodeReferences.get(created.id);
     expect(fromTree).toBeDefined();
     expect(fromIndex).toBe(fromTree);
+    expect(doc.activeNodeId).toBe(created.id);
     expect(doc.activeNode).toBe(fromTree);
   });
 
@@ -58,6 +60,7 @@ describe("createDocument", () => {
 
     expect(doc.children.size).toEqual(0);
     expect(doc.nodeReferences.size).toEqual(0);
+    expect(doc.activeNodeId).toBe("root");
     expect(doc.activeNode).toEqual(doc);
     expect(doc.nodeReferences.get(n2.id)).toBeUndefined();
     expect(doc.nodeReferences.get(n3.id)).toBeUndefined();
@@ -117,6 +120,7 @@ describe("createDocument", () => {
     const loaded = DocumentModel.load(doc.save());
 
     expect(loaded.metadata.name).toBe("Board");
+    expect(loaded.activeNodeId).toBe(n1.id);
     expect(loaded.activeNode).toBe(loaded.nodeReferences.get(n1.id));
     expect(loaded.children.get(n1.id)).toBe(loaded.nodeReferences.get(n1.id));
     expect(loaded.children.get(n1.id)?.children.get(n2.id)).toBe(loaded.nodeReferences.get(n2.id));
@@ -135,7 +139,18 @@ describe("createDocument", () => {
 
     expect(loaded.children.get("1")).toBeDefined();
     expect(loaded.children.get("1")?.children.get("2")).toBe(loaded.nodeReferences.get("2"));
+    expect(loaded.activeNodeId).toBe("root");
     expect(loaded.activeNode).toBe(loaded);
+  });
+
+  it("should select by id without storing a separate object cursor", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    const created = doc.addNode({ x: 0, y: 0 });
+    doc.selectNode("root");
+    expect(doc.activeNodeId).toBe("root");
+    doc.selectNode(created.id);
+    expect(doc.activeNodeId).toBe(created.id);
+    expect(doc.activeNode).toBe(doc.nodeReferences.get(created.id));
   });
 
   it("should update the active node's local x/y in place", () => {
@@ -185,6 +200,7 @@ describe("createDocument", () => {
     expect(sticky.parentId).toBe(frameA.id);
     expect(doc.nodeReferences.get(frameA.id)).toBe(frameA);
     expect(doc.nodeReferences.get(sticky.id)).toBe(sticky);
+    expect(doc.activeNodeId).toBe(frameA.id);
     expect(doc.activeNode).toBe(frameA);
   });
 

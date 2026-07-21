@@ -5,13 +5,17 @@ class DocumentModel implements Document {
   readonly metadata: Document["metadata"];
   readonly children: Document["children"];
   readonly nodeReferences: Document["nodeReferences"];
-  activeNode: Document["activeNode"];
+  activeNodeId: Document["activeNodeId"];
 
   constructor(metadata: Document["metadata"]) {
     this.metadata = metadata;
     this.children = new Map();
     this.nodeReferences = new Map();
-    this.activeNode = this;
+    this.activeNodeId = this.id;
+  }
+
+  get activeNode(): Node | DocumentModel {
+    return this.getNode(this.activeNodeId);
   }
 
   private createId(): string {
@@ -26,43 +30,38 @@ class DocumentModel implements Document {
       throw new Error(`Duplicate node id: ${node.id}`);
     }
 
-    // Same object in tree + index + activeNode
+    // Same object in tree + index (not a copy).
     parentNode.children.set(node.id, node);
     this.nodeReferences.set(node.id, node);
-    this.activeNode = node;
+    this.activeNodeId = node.id;
     return node;
   }
 
   addNode(props: NodeCreate): Node {
-    if (!this.activeNode) {
-      throw new Error("No active node");
-    }
+    const parentNode = this.getNode(this.activeNodeId);
 
     const node: Node = {
       children: new Map(),
       id: this.createId(),
-      parentId: this.activeNode.id,
+      parentId: parentNode.id,
       x: props.x,
       y: props.y,
     };
 
-    return this.createNode(node, this.activeNode);
+    return this.createNode(node, parentNode);
   }
 
-  selectNode(id: Node["id"]): void {
-    this.activeNode = this.getNode(id);
+  selectNode(id: Node["id"] | Document["id"]): void {
+    this.getNode(id); // Validate
+    this.activeNodeId = id;
   }
 
   updateNode(patch: NodeUpdate): Node {
-    if (!this.activeNode) {
-      throw new Error("No active node");
-    }
-
-    if (this.activeNode === this) {
+    if (this.activeNodeId === this.id) {
       throw new Error("Root node cannot be updated");
     }
 
-    const node = this.activeNode as Node;
+    const node = this.getNode(this.activeNodeId) as Node;
     if (patch.x !== undefined) {
       node.x = patch.x;
     }
@@ -73,15 +72,11 @@ class DocumentModel implements Document {
   }
 
   reparentNode(newParentId: Node["id"] | Document["id"]): Node {
-    if (!this.activeNode) {
-      throw new Error("No active node");
-    }
-
-    if (this.activeNode === this) {
+    if (this.activeNodeId === this.id) {
       throw new Error("Root node cannot be reparented");
     }
 
-    const node = this.activeNode as Node;
+    const node = this.getNode(this.activeNodeId) as Node;
     const newParent = this.getNode(newParentId);
 
     if (node.parentId === newParent.id) {
@@ -114,12 +109,12 @@ class DocumentModel implements Document {
     return false;
   }
 
-  private getNode(id: Node["id"]): Node | DocumentModel {
+  private getNode(id: Node["id"] | Document["id"]): Node | DocumentModel {
     if (!id) {
       throw new Error("Node id is required");
     }
 
-    if (id === "root") {
+    if (id === this.id) {
       return this;
     }
 
@@ -138,31 +133,23 @@ class DocumentModel implements Document {
   }
 
   deleteNode(id: Node["id"]): void {
-    if (!this.activeNode) {
-      throw new Error("No active node");
-    }
-
-    if (this.activeNode.id !== id) {
+    if (this.activeNodeId !== id) {
       throw new Error("Active node is not the node to delete");
     }
 
-    if (this.activeNode === this) {
+    if (this.activeNodeId === this.id) {
       throw new Error("Root node cannot be deleted");
     }
 
-    const deleted = this.activeNode as Node;
+    const deleted = this.getNode(id) as Node;
     const parentNode = this.getNode(deleted.parentId);
 
     this.clearSubtreeFromIndex(deleted);
     parentNode.children.delete(deleted.id);
-    this.activeNode = parentNode;
+    this.activeNodeId = parentNode.id;
   }
 
   save(): SerializedDocument {
-    if (!this.activeNode) {
-      throw new Error("No active node");
-    }
-
     const nodes: SerializedDocument["nodes"] = [];
     for (const node of this.nodeReferences.values()) {
       nodes.push({
@@ -174,7 +161,7 @@ class DocumentModel implements Document {
     }
 
     return {
-      activeNodeId: this.activeNode.id,
+      activeNodeId: this.activeNodeId,
       metadata: { ...this.metadata },
       nodes,
     };
@@ -211,7 +198,8 @@ class DocumentModel implements Document {
       parent.children.set(node.id, node);
     }
 
-    doc.activeNode = doc.getNode(data.activeNodeId);
+    doc.getNode(data.activeNodeId); // Validate
+    doc.activeNodeId = data.activeNodeId;
     return doc;
   }
 }

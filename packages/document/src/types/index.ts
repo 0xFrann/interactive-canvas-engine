@@ -17,7 +17,8 @@ interface Document {
   };
   readonly children: Node["children"];
   readonly nodeReferences: Node["children"];
-  readonly activeNode: Node | Document | null;
+  activeNodeId: Node["id"] | Document["id"];
+  readonly activeNode: Node | Document;
 }
 
 interface SerializedNode {
