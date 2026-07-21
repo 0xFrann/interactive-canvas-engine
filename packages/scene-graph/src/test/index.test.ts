@@ -3,7 +3,7 @@ import { DocumentModel } from "@canvas-engine/document";
 import { getWorldPosition } from "../index";
 
 describe("getWorldPosition", () => {
-  it("sums locals along root → frame → sticky (and follows a frame move without rewriting sticky locals)", () => {
+  it("reads document worldX/worldY (updated when a frame moves without rewriting sticky locals)", () => {
     const doc = new DocumentModel({ name: "Board" });
 
     const frame = doc.addNode({ x: 100, y: 50 });

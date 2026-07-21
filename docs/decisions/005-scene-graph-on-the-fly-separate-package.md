@@ -1,6 +1,6 @@
 # ADR 005: Scene graph — on-the-fly world, separate package
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 006](./006-world-on-document-scene-facade.md)
 - **Date:** 2026-07-21
 - **Topic:** Scene graph
 

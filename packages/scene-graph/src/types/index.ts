@@ -1,4 +1,1 @@
-export interface WorldPosition {
-  x: number;
-  y: number;
-}
+export type { WorldPosition } from "@canvas-engine/document";

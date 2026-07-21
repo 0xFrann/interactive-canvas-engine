@@ -13,15 +13,15 @@ A Mural-like board needs create / nest / select / delete that stay consistent. S
 **Shape (learner-built):**
 
 - **`DocumentModel` is the root** (`id: 'root'`). No separate root node object.
-- **`Node`:** `id`, `x`, `y`, `parentId`, `children: Map<id, Node>`.
+- **`Node`:** `id`, local `x`/`y`, runtime `worldX`/`worldY`, `parentId`, `children: Map<id, Node>`.
 - **Tree:** containment via nested `children` Maps (sibling lookup by id is local O(1)).
 - **`nodeReferences: Map<id, Node>`:** document-wide O(1) get — stores the **same object references** as the tree (not copies).
 - **`activeNodeId`:** selection / insert cursor as an id (`"root"` or a node id). Matches save/load.
 - **`activeNode` (getter):** resolves via `getNode` / `nodeReferences` — convenience only, not a second stored pointer.
-- **API today:** `addNode({ x, y })` (document assigns UUID + `parentId` from active), `selectNode`, `updateNode` (local `x`/`y` patch on active node; no descendant walk), `reparentNode(newParentId)` (unlink/relink active node; subtree comes along; cycle-checked), `deleteNode` (subtree: recursive purge of `nodeReferences`, then unlink from parent), `getNode` (private, via index), `save` / `DocumentModel.load` (flat JSON).
-- **Local coords:** `x`/`y` are relative to parent. Moving a frame patches only that node; children keep their local values (world position comes from scene graph later).
+- **API today:** `addNode({ x, y })` (UUID + parent from active; sets world from parent world + local), `selectNode`, `updateNode` (local patch; **syncs world for node + descendants**), `reparentNode` (unlink/relink; **preserves world** by rewriting local; cycle-checked), `deleteNode` (subtree purge + unlink), `save` / `DocumentModel.load` (flat JSON; world recomputed on load).
+- **Local vs world:** `x`/`y` relative to parent (persisted). `worldX`/`worldY` board position (runtime only; [ADR 006](./decisions/006-world-on-document-scene-facade.md)). Child locals unchanged when a frame moves; descendant **world** is updated on write. Render-facing read: `@canvas-engine/scene-graph` `getWorldPosition`.
 - **Ids:** created via `crypto.randomUUID()` ([ADR 003](./decisions/003-document-generated-ids.md)); file load preserves stored ids.
-- **Persistence:** file is `{ metadata, nodes[{ id, parentId, x, y }], activeNodeId }` — no nested `children`, no `nodeReferences`. Load is two-pass (index all nodes → link parents → restore active). See [ADR 002](./decisions/002-flat-json-persistence.md).
+- **Persistence:** file is `{ metadata, nodes[{ id, parentId, x, y }], activeNodeId }` — no `world*`, no nested `children`, no `nodeReferences`. Load: two-pass link, then sync world from locals. See [ADR 002](./decisions/002-flat-json-persistence.md).
 
 ```mermaid
 flowchart TB
@@ -57,8 +57,8 @@ flowchart TB
 - [x] Stable id generation (`crypto.randomUUID` on `addNode`; [ADR 003](./decisions/003-document-generated-ids.md))
 - [x] Reparent / move in tree (`reparentNode`; [ADR 004](./decisions/004-reparent-unlink-relink.md))
 - [x] Cursor stored as `activeNodeId` (getter `activeNode` resolves from index)
-- [x] Scene graph: local `x,y` → world coordinates (`getWorldPosition`; roadmap #2 first slice)
-- [ ] Optional: adjust local coords on reparent to preserve world position
+- [x] Scene graph: local `x,y` → world (`worldX`/`worldY` + facade `getWorldPosition`; [ADR 006](./decisions/006-world-on-document-scene-facade.md))
+- [x] Reparent preserves world (rewrite local under new parent)
 
 ## Trade-offs
 
@@ -67,7 +67,8 @@ flowchart TB
 | Tree `children` | Containment / subtree reasoning | Structure + index must stay in sync |
 | Flat `nodeReferences` | O(1) get by id; no recursion for lookup | Extra write on add/delete |
 | Same object in both | One source of truth in memory | Easy to break with clones/spreads |
-| Local `x`/`y` | Parent move is O(1); no child rewrite | Need scene graph for world coords |
+| Local `x`/`y` | Parent move does not rewrite child locals | Must maintain `world*` on write |
+| Runtime `worldX`/`worldY` | O(1) board position; easy reparent-preserve | Denormalized; sync subtree on local update |
 | UUID on create | No caller inventing ids; safe after load | Opaque ids in tests/logs |
 | Document-as-root | Empty board is just the document | `Node \| Document` union for cursor |
 | Class for actions | Clear home for operations | Not a perf win/loss at this scale |

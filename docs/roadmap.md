@@ -7,7 +7,7 @@ North star: [goal.md](./goal.md)
 | # | Topic | Status | Code | Docs | ADR |
 |---|-------|--------|------|------|-----|
 | 1 | Document model | done | [`packages/document`](../packages/document) | [document-model.md](./document-model.md) | [001](./decisions/001-document-as-tree.md)–[004](./decisions/004-reparent-unlink-relink.md) |
-| 2 | Scene graph | building | [`packages/scene-graph`](../packages/scene-graph) | [scene-graph.md](./scene-graph.md) | [005](./decisions/005-scene-graph-on-the-fly-separate-package.md) |
+| 2 | Scene graph | building | [`packages/scene-graph`](../packages/scene-graph) | [scene-graph.md](./scene-graph.md) | [005](./decisions/005-scene-graph-on-the-fly-separate-package.md)→[006](./decisions/006-world-on-document-scene-facade.md) |
 | 3 | Renderer | todo | — | — | — |
 | 4 | Camera | todo | — | — | — |
 | 5 | Hit testing | todo | — | — | — |
@@ -16,7 +16,7 @@ North star: [goal.md](./goal.md)
 
 ## Current focus
 
-**#2 Scene graph — building** first slice done: `getWorldPosition`. Open: world↔local, bounds; cache parked for #3.
+**#2 Scene graph — building** world on document + thin facade (ADR 006). Open: bounds; camera/hit-test grow scene-graph.
 
 ## Document model — TBD (do not lose)
 
@@ -30,17 +30,20 @@ North star: [goal.md](./goal.md)
 
 ## Scene graph — park / revisit
 
-- [ ] **Revisit world cache/dirty when renderer pain is real** (60fps + many nodes + frequent world reads). See [note](./engineering-notes/2026-07-21-world-cache-revisit-at-render.md) + [ADR 005](./decisions/005-scene-graph-on-the-fly-separate-package.md).
+- [x] World on document + reparent preserve ([ADR 006](./decisions/006-world-on-document-scene-facade.md)); scene-graph kept as read facade
+- [ ] Grow scene-graph for camera / hit-test (not just `getWorldPosition`)
+- [ ] If write-path subtree sync hurts under continuous drag, consider dirty flags ([note](./engineering-notes/2026-07-21-world-cache-revisit-at-render.md))
 
 ## Next up
 
-1. Decide next scene-graph slice (world→local / bounds) or start renderer Teach
+1. Start renderer Teach, or bounds when nodes gain size
 2. Keep Capture habit
 
 ## Session log
 
 | Date | What happened |
 |------|----------------|
+| 2026-07-21 | ADR 006: worldX/Y on document; reparent preserves world; scene-graph facade |
 | 2026-07-21 | Scene graph: `getWorldPosition` on-the-fly; docs + note; tests green |
 | 2026-07-21 | Scene graph: locked on-the-fly + separate package (ADR 005); cache/dirty parked for renderer |
 | 2026-07-21 | Scene graph: start Teach (local→world); first slice scoped |

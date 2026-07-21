@@ -2,53 +2,53 @@
 
 ## What it is
 
-Derived spatial layer over the document: given local `x`/`y` on nodes, answer **world** position on the board. Package: `@canvas-engine/scene-graph`. Does not own stickies — it reads `@canvas-engine/document`.
+Render-facing spatial facade over the document. Today: **`getWorldPosition(doc, nodeId)`** returns the node’s maintained board position. Package: `@canvas-engine/scene-graph`. Will grow for camera / hit-test; it does not own stickies.
 
 ## Why it exists
 
-Document mutates locals cheaply (move a frame without rewriting children). Paint and later hit-testing need absolute board coordinates. Separating “relative truth” from “where on the board” keeps CRUD simple and matches [ADR 005](./decisions/005-scene-graph-on-the-fly-separate-package.md).
+Call sites (renderer later) should depend on a spatial API, not dig through document internals forever. After [ADR 006](./decisions/006-world-on-document-scene-facade.md), **truth for world lives on the node** (`worldX`/`worldY`); this package is the stable import surface.
 
 ## How it works here
 
-- **`getWorldPosition(doc, nodeId)`** — walk `parentId` via `doc.nodeReferences`, sum local `x`/`y` until document root (`id === "root"`, not in the index). Root contributes `(0, 0)`.
-- **On the fly** — no cached world, no dirty flags. After `updateNode` on a frame, children’s stored locals are unchanged; their world sum changes automatically.
-- **Example:** frame local `(100, 50)`, sticky `(20, 10)` → sticky world `(120, 60)`. Frame → `(200, 50)` → sticky world `(220, 60)`.
+- Document sets `worldX`/`worldY` on add / local update (subtree) / load; reparent preserves world by rewriting local.
+- `getWorldPosition` reads those fields (O(1)); no parent-chain walk on read.
+- Locals still mean “relative to parent”; moving a frame does not rewrite child locals — document syncs descendant **world** instead.
 
 ```mermaid
 flowchart LR
-  R[root 0,0] -->|"+ frame local"| F[frame world]
-  F -->|"+ sticky local"| S[sticky world]
+  Doc[Document writes world on mutate]
+  SG[scene-graph getWorldPosition]
+  Doc -->|worldX worldY| SG
 ```
 
 ## Alternatives considered
 
-- Cache + dirty on ancestor moves — parked until renderer ask-rate hurts. See [note](./engineering-notes/2026-07-21-world-cache-revisit-at-render.md).
-- World helpers inside `packages/document` — rejected; keep document = storage/CRUD.
+- On-the-fly walk in this package only — [ADR 005](./decisions/005-scene-graph-on-the-fly-separate-package.md), superseded (cycle vs reparent-preserve).
+- Delete this package — deferred; keep scaffolding for #3+.
 
 ## What I would do differently
 
-- Nothing major for this thin slice; watch coupling if scene-graph starts reaching into private document internals.
+- Nothing yet; watch that the facade stays thin until camera needs real logic here.
 
 ## Open questions
 
-- [ ] World → local (e.g. reparent while preserving on-screen position)
+- [ ] World → screen via camera (this package)
 - [ ] Bounds / size in world space when nodes gain width/height
-- [ ] Revisit cache/dirty at renderer (#3)
 
 ## Trade-offs
 
 | Choice | Gain | Cost |
 |--------|------|------|
-| On-the-fly sum | Always correct; tiny code | Cost × depth × ask rate |
-| Separate package | Clear boundary for render/camera | Extra workspace package |
-| Read `nodeReferences` | O(1) per hop | Couples to document’s public index |
+| World on document | Reparent-preserve + O(1) read; no package cycle | Write path must sync subtree |
+| Thin scene-graph | Stable import for renderer | Almost a pass-through today |
+| World not in JSON | File stays local-canonical | Must recompute world on load |
 
 ## How Mural probably solves this
 
-Hierarchical transforms (often matrices once rotation/scale appear); derived world for paint/culling; caching or spatial indexes when boards are huge and interaction is continuous.
+Runtime scene/transform state often denormalized for paint; persistence/sync keeps a smaller canonical form. Separate modules for camera and hit-test even when data lives on nodes.
 
 ## References
 
-- [ADR 005](./decisions/005-scene-graph-on-the-fly-separate-package.md)
-- [Document model](./document-model.md) — local coords
-- [Engineering note — cache revisit](./engineering-notes/2026-07-21-world-cache-revisit-at-render.md)
+- [ADR 006](./decisions/006-world-on-document-scene-facade.md)
+- [Document model](./document-model.md)
+- [Engineering note — world on document](./engineering-notes/2026-07-21-world-on-document.md)

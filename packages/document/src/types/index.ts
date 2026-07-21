@@ -1,7 +1,14 @@
+interface WorldPosition {
+  x: number;
+  y: number;
+}
+
 interface Node {
   id: string;
   x: number;
   y: number;
+  worldX: number;
+  worldY: number;
   children: Map<Node["id"], Node>;
   parentId: Node["id"];
 }
@@ -19,6 +26,13 @@ interface Document {
   readonly nodeReferences: Node["children"];
   activeNodeId: Node["id"] | Document["id"];
   readonly activeNode: Node | Document;
+
+  addNode(props: NodeCreate): Node;
+  selectNode(id: Node["id"] | Document["id"]): void;
+  updateNode(patch: NodeUpdate): Node;
+  reparentNode(newParentId: Node["id"] | Document["id"]): Node;
+  deleteNode(id: Node["id"]): void;
+  save(): SerializedDocument;
 }
 
 interface SerializedNode {
@@ -35,6 +49,7 @@ interface SerializedDocument {
 }
 
 export {
+  type WorldPosition,
   type Node,
   type NodeUpdate,
   type NodeCreate,

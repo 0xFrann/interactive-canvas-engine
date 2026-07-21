@@ -1,4 +1,11 @@
-import type { Document, Node, NodeCreate, NodeUpdate, SerializedDocument } from "./types";
+import type {
+  Document,
+  Node,
+  NodeCreate,
+  NodeUpdate,
+  SerializedDocument,
+  WorldPosition,
+} from "./types";
 
 class DocumentModel implements Document {
   readonly id: Document["id"] = "root";
@@ -22,6 +29,23 @@ class DocumentModel implements Document {
     return crypto.randomUUID();
   }
 
+  private parentWorld(parent: Node | DocumentModel): WorldPosition {
+    if (parent === this) {
+      return { x: 0, y: 0 };
+    }
+    return { x: (parent as Node).worldX, y: (parent as Node).worldY };
+  }
+
+  private syncWorldSubtree(node: Node): void {
+    const parent = this.getNode(node.parentId);
+    const origin = this.parentWorld(parent);
+    node.worldX = origin.x + node.x;
+    node.worldY = origin.y + node.y;
+    for (const child of node.children.values()) {
+      this.syncWorldSubtree(child);
+    }
+  }
+
   private createNode(node: Node, parentNode: Node | Document): Node {
     if (node.id === "root") {
       throw new Error("Root node cannot be overridden");
@@ -39,11 +63,14 @@ class DocumentModel implements Document {
 
   addNode(props: NodeCreate): Node {
     const parentNode = this.getNode(this.activeNodeId);
+    const origin = this.parentWorld(parentNode);
 
     const node: Node = {
       children: new Map(),
       id: this.createId(),
       parentId: parentNode.id,
+      worldX: origin.x + props.x,
+      worldY: origin.y + props.y,
       x: props.x,
       y: props.y,
     };
@@ -68,6 +95,7 @@ class DocumentModel implements Document {
     if (patch.y !== undefined) {
       node.y = patch.y;
     }
+    this.syncWorldSubtree(node);
     return node;
   }
 
@@ -86,6 +114,10 @@ class DocumentModel implements Document {
     if (this.isAncestorOf(node, newParent)) {
       throw new Error("Cannot reparent a node under itself or its descendant");
     }
+
+    const origin = this.parentWorld(newParent);
+    node.x = node.worldX - origin.x;
+    node.y = node.worldY - origin.y;
 
     const oldParent = this.getNode(node.parentId);
     oldParent.children.delete(node.id);
@@ -182,6 +214,8 @@ class DocumentModel implements Document {
         children: new Map(),
         id: row.id,
         parentId: row.parentId,
+        worldX: 0,
+        worldY: 0,
         x: row.x,
         y: row.y,
       };
@@ -198,6 +232,10 @@ class DocumentModel implements Document {
       parent.children.set(node.id, node);
     }
 
+    for (const child of doc.children.values()) {
+      doc.syncWorldSubtree(child);
+    }
+
     doc.getNode(data.activeNodeId); // Validate
     doc.activeNodeId = data.activeNodeId;
     return doc;
@@ -212,4 +250,5 @@ export type {
   NodeCreate,
   NodeUpdate,
   Document,
+  WorldPosition,
 } from "./types";

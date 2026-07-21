@@ -175,6 +175,21 @@ describe("createDocument", () => {
 
     expect(child.x).toBe(10);
     expect(child.y).toBe(10);
+    expect(parent.worldX).toBe(100);
+    expect(parent.worldY).toBe(200);
+    expect(child.worldX).toBe(110);
+    expect(child.worldY).toBe(210);
+  });
+
+  it("should set world from parent world + local on add", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    const frame = doc.addNode({ x: 100, y: 50 });
+    const sticky = doc.addNode({ x: 20, y: 10 });
+
+    expect(frame.worldX).toBe(100);
+    expect(frame.worldY).toBe(50);
+    expect(sticky.worldX).toBe(120);
+    expect(sticky.worldY).toBe(60);
   });
 
   it("should prevent updating the root", () => {
@@ -190,6 +205,11 @@ describe("createDocument", () => {
     doc.selectNode(frameA.id);
     const sticky = doc.addNode({ x: 5, y: 5 });
 
+    expect(frameA.worldX).toBe(0);
+    expect(frameA.worldY).toBe(0);
+    expect(sticky.worldX).toBe(5);
+    expect(sticky.worldY).toBe(5);
+
     doc.selectNode(frameA.id);
     doc.reparentNode(frameB.id);
 
@@ -202,6 +222,32 @@ describe("createDocument", () => {
     expect(doc.nodeReferences.get(sticky.id)).toBe(sticky);
     expect(doc.activeNodeId).toBe(frameA.id);
     expect(doc.activeNode).toBe(frameA);
+
+    expect(frameA.worldX).toBe(0);
+    expect(frameA.worldY).toBe(0);
+    expect(frameA.x).toBe(-20);
+    expect(frameA.y).toBe(-20);
+    expect(sticky.x).toBe(5);
+    expect(sticky.y).toBe(5);
+    expect(sticky.worldX).toBe(5);
+    expect(sticky.worldY).toBe(5);
+  });
+
+  it("should restore world on load from locals only (world not in file)", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    const frame = doc.addNode({ x: 100, y: 50 });
+    doc.addNode({ x: 20, y: 10 });
+    const saved = doc.save();
+    expect(saved.nodes[0]).not.toHaveProperty("worldX");
+
+    const loaded = DocumentModel.load(saved);
+    const loadedFrame = loaded.nodeReferences.get(frame.id)!;
+    const loadedSticky = [...loadedFrame.children.values()][0]!;
+
+    expect(loadedFrame.worldX).toBe(100);
+    expect(loadedFrame.worldY).toBe(50);
+    expect(loadedSticky.worldX).toBe(120);
+    expect(loadedSticky.worldY).toBe(60);
   });
 
   it("should reparent onto root", () => {
