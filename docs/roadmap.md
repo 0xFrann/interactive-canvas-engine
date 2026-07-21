@@ -16,7 +16,7 @@ North star: [goal.md](./goal.md)
 
 ## Current focus
 
-**Next: node drag** Hit-testing done (ADR 010). Then optional reparent-on-exit; only then evaluate cache/dirty.
+**Next: optional reparent-on-exit** Node drag live (ADR 011). Then evaluate cache/dirty under drag load.
 
 ## Document model — TBD (do not lose)
 
@@ -40,19 +40,21 @@ North star: [goal.md](./goal.md)
 - [x] **#3a** Node `width` / `height` ([ADR 008](./decisions/008-node-width-height.md))
 - [x] Camera / viewport (roadmap #4)
 - [x] Hit testing package (roadmap #5)
-- [ ] Node drag (after hit-test); reparent-on-exit as follow-up
+- [x] Node drag in demo (world delta → local `updateNode`; [ADR 011](./decisions/011-node-drag-demo.md))
+- [ ] Reparent when dropping outside current parent
 - [ ] Revisit cache/dirty only after drag exists and hurts
 
 ## Next up
 
-1. **Node drag** (pointer move → update locals)
-2. Optional **reparent when dropping outside parent**
-3. **Only then** evaluate cache/dirty
+1. Optional **reparent when dropping outside parent**
+2. **Evaluate cache/dirty** under real drag (only if it hurts)
+3. QuadTree stretch / collaboration docs
 
 ## Session log
 
 | Date | What happened |
 |------|----------------|
+| 2026-07-21 | Demo node drag via world delta → local update (ADR 011) |
 | 2026-07-21 | Hit-testing package; demo uses world-space pick (ADR 010) |
 | 2026-07-21 | Plan: hit-test → node drag → evaluate cache/dirty (baby steps) |
 | 2026-07-21 | Camera package + demo pan/zoom (ADR 009) |

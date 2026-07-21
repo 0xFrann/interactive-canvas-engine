@@ -67,11 +67,19 @@ const canvasPoint = (event: PointerEvent | MouseEvent | WheelEvent): { x: number
   };
 };
 
-const PAN_THRESHOLD_PX = 4;
-let panning = false;
-let panMoved = false;
-let panLast = { x: 0, y: 0 };
-let pendingSelect: string | undefined;
+const DRAG_THRESHOLD_PX = 4;
+
+type Interaction =
+  | { kind: "pan"; lastScreen: { x: number; y: number }; moved: boolean }
+  | {
+      kind: "node";
+      nodeId: string;
+      lastWorld: { x: number; y: number };
+      originScreen: { x: number; y: number };
+      moved: boolean;
+    };
+
+let interaction: Interaction | undefined;
 
 canvas.addEventListener(
   "wheel",
@@ -95,59 +103,76 @@ canvas.addEventListener("pointerdown", (event) => {
   const hit = hitTest(doc, world);
 
   if (event.button === 1 || !hit) {
-    panning = true;
-    panMoved = false;
-    panLast = screen;
-    pendingSelect = undefined;
+    interaction = { kind: "pan", lastScreen: screen, moved: false };
+    canvas.style.cursor = "grabbing";
     canvas.setPointerCapture(event.pointerId);
     return;
   }
 
-  pendingSelect = hit;
-  panMoved = false;
+  doc.selectNode(hit);
+  interaction = {
+    kind: "node",
+    lastWorld: world,
+    moved: false,
+    nodeId: hit,
+    originScreen: screen,
+  };
+  paint();
+  canvas.style.cursor = "grabbing";
   canvas.setPointerCapture(event.pointerId);
 });
 
 canvas.addEventListener("pointermove", (event) => {
-  if (!panning && pendingSelect === undefined) {
+  if (!interaction) {
     return;
   }
 
   const screen = canvasPoint(event);
-  const dx = screen.x - panLast.x;
-  const dy = screen.y - panLast.y;
 
-  if (panning) {
-    if (Math.hypot(dx, dy) >= PAN_THRESHOLD_PX || panMoved) {
-      panMoved = true;
+  if (interaction.kind === "pan") {
+    const dx = screen.x - interaction.lastScreen.x;
+    const dy = screen.y - interaction.lastScreen.y;
+    if (Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX || interaction.moved) {
+      interaction.moved = true;
       panCamera(camera, { x: dx, y: dy });
-      panLast = screen;
+      interaction.lastScreen = screen;
       paint();
     }
     return;
   }
 
-  // Started on a node: if dragged, switch to pan instead of select.
-  if (pendingSelect && Math.hypot(dx, dy) >= PAN_THRESHOLD_PX) {
-    panning = true;
-    panMoved = true;
-    pendingSelect = undefined;
-    panLast = screen;
+  const screenDx = screen.x - interaction.originScreen.x;
+  const screenDy = screen.y - interaction.originScreen.y;
+  if (!interaction.moved && Math.hypot(screenDx, screenDy) < DRAG_THRESHOLD_PX) {
+    return;
   }
+  interaction.moved = true;
+
+  const world = screenToWorld(screen, camera);
+  const dx = world.x - interaction.lastWorld.x;
+  const dy = world.y - interaction.lastWorld.y;
+  if (dx === 0 && dy === 0) {
+    return;
+  }
+
+  doc.selectNode(interaction.nodeId);
+  const node = doc.activeNode;
+  if (!("x" in node)) {
+    return;
+  }
+  doc.updateNode({ x: node.x + dx, y: node.y + dy });
+  interaction.lastWorld = world;
+  paint();
 });
 
 canvas.addEventListener("pointerup", (event) => {
-  if (pendingSelect && !panMoved) {
-    doc.selectNode(pendingSelect);
-    paint();
-  } else if (!panMoved && !pendingSelect && event.button === 0) {
+  if (interaction?.kind === "pan" && !interaction.moved && event.button === 0) {
     doc.selectNode("root");
     paint();
   }
 
-  panning = false;
-  panMoved = false;
-  pendingSelect = undefined;
+  interaction = undefined;
+  canvas.style.cursor = "crosshair";
   if (canvas.hasPointerCapture(event.pointerId)) {
     canvas.releasePointerCapture(event.pointerId);
   }

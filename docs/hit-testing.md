@@ -25,7 +25,7 @@ Selection, drag, and tools need “what did the user point at?” Camera convert
 
 ## Open questions
 
-- [ ] Node drag (next baby step)
+- [ ] Node drag (next baby step) — done in demo; see [ADR 011](./decisions/011-node-drag-demo.md)
 - [ ] Reparent when dropping outside current parent
 - [ ] Spatial index when N grows (roadmap #6)
 
