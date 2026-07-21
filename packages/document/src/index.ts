@@ -1,4 +1,4 @@
-import type { Document, Node, NodeUpdate, SerializedDocument } from "./types";
+import type { Document, Node, NodeCreate, NodeUpdate, SerializedDocument } from "./types";
 
 class DocumentModel implements Document {
   readonly id: Document["id"] = "root";
@@ -14,9 +14,16 @@ class DocumentModel implements Document {
     this.activeNode = this;
   }
 
+  private createId(): string {
+    return crypto.randomUUID();
+  }
+
   private createNode(node: Node, parentNode: Node | Document): Node {
     if (node.id === "root") {
       throw new Error("Root node cannot be overridden");
+    }
+    if (this.nodeReferences.has(node.id)) {
+      throw new Error(`Duplicate node id: ${node.id}`);
     }
 
     // Same object in tree + index + activeNode
@@ -26,24 +33,20 @@ class DocumentModel implements Document {
     return node;
   }
 
-  addNode(node: Node) {
+  addNode(props: NodeCreate): Node {
     if (!this.activeNode) {
       throw new Error("No active node");
     }
 
-    const parentNode = (() => {
-      try {
-        return this.getNode(node.parentId);
-      } catch {
-        throw new Error("Parent node not found");
-      }
-    })();
+    const node: Node = {
+      children: new Map(),
+      id: this.createId(),
+      parentId: this.activeNode.id,
+      x: props.x,
+      y: props.y,
+    };
 
-    if (this.activeNode !== parentNode) {
-      throw new Error("Node is not a child of the active node");
-    }
-
-    return this.createNode(node, parentNode);
+    return this.createNode(node, this.activeNode);
   }
 
   selectNode(id: Node["id"]): void {
@@ -172,4 +175,11 @@ class DocumentModel implements Document {
 }
 
 export { DocumentModel };
-export type { SerializedDocument, SerializedNode, Node, NodeUpdate, Document } from "./types";
+export type {
+  SerializedDocument,
+  SerializedNode,
+  Node,
+  NodeCreate,
+  NodeUpdate,
+  Document,
+} from "./types";

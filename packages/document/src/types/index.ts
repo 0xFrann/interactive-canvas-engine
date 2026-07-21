@@ -8,6 +8,8 @@ interface Node {
 
 type NodeUpdate = Partial<Pick<Node, "x" | "y">>;
 
+type NodeCreate = Pick<Node, "x" | "y">;
+
 interface Document {
   readonly id: string;
   readonly metadata: {
@@ -31,4 +33,11 @@ interface SerializedDocument {
   activeNodeId: Node["id"] | Document["id"];
 }
 
-export { type Node, type NodeUpdate, type Document, type SerializedNode, type SerializedDocument };
+export {
+  type Node,
+  type NodeUpdate,
+  type NodeCreate,
+  type Document,
+  type SerializedNode,
+  type SerializedDocument,
+};

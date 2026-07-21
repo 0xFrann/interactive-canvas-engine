@@ -23,12 +23,13 @@ North star: [goal.md](./goal.md)
 - [x] Delete subtree + purge descendants from `nodeReferences`
 - [x] JSON save/load (flat file → rebuild tree + `nodeReferences`)
 - [x] `updateNode` (local `x`/`y` only — not recursive)
-- [ ] Id generation; reparent
-- [ ] Revisit `activeNode` insert rules if they get in the way
+- [x] Id generation (`addNode({ x, y })` → UUID; ADR 003)
+- [ ] Reparent
+- [ ] Revisit insert UX if needed (parent is always `activeNode` now)
 
 ## Next up
 
-1. Id generation + reparent (as needed)
+1. Reparent (as needed)
 2. Then Teach **scene graph** (local → world)
 
 ## Session log
@@ -41,3 +42,4 @@ North star: [goal.md](./goal.md)
 | 2026-07-21 | Subtree delete: recursive purge of `nodeReferences` + unlink; tests green |
 | 2026-07-21 | JSON save/load: flat nodes + two-pass hydrate; ADR 002; tests green |
 | 2026-07-21 | `updateNode`: local x/y patch; children unchanged; tests green |
+| 2026-07-21 | Id generation: UUID on add; parent from activeNode; ADR 003 |

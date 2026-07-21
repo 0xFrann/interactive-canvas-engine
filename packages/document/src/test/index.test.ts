@@ -13,150 +13,91 @@ describe("createDocument", () => {
     expect(doc.activeNode).toEqual(doc);
   });
 
-  it("should add a new node to the document root", () => {
+  it("should add a new node under the active node with a generated id", () => {
     const doc = new DocumentModel({ name: "Test Document" });
-    doc.addNode({
-      children: new Map(),
-      id: "1",
-      parentId: "root",
-      x: 0,
-      y: 0,
-    });
-    const fromTree = doc.children.get("1");
-    const fromIndex = doc.nodeReferences.get("1");
+    const created = doc.addNode({ x: 0, y: 0 });
+
+    expect(created.id).not.toBe("root");
+    expect(created.parentId).toBe("root");
+    const fromTree = doc.children.get(created.id);
+    const fromIndex = doc.nodeReferences.get(created.id);
     expect(fromTree).toBeDefined();
     expect(fromIndex).toBe(fromTree);
     expect(doc.activeNode).toBe(fromTree);
   });
 
-  it("should add a new node to a child node", () => {
+  it("should add a nested node under the current active node", () => {
     const doc = new DocumentModel({ name: "Test Document" });
-    doc.addNode({
-      children: new Map(),
-      id: "1",
-      parentId: "root",
-      x: 0,
-      y: 0,
-    });
-    doc.addNode({
-      children: new Map(),
-      id: "2",
-      parentId: "1",
-      x: 0,
-      y: 0,
-    });
+    const parent = doc.addNode({ x: 0, y: 0 });
+    const child = doc.addNode({ x: 0, y: 0 });
+
+    expect(child.parentId).toBe(parent.id);
+    expect(parent.children.get(child.id)).toBe(child);
+    expect(doc.nodeReferences.get(child.id)).toBe(child);
+  });
+
+  it("should generate unique ids for each add", () => {
+    const doc = new DocumentModel({ name: "Test Document" });
+    const a = doc.addNode({ x: 0, y: 0 });
+    doc.selectNode("root");
+    const b = doc.addNode({ x: 1, y: 1 });
+
+    expect(a.id).not.toBe(b.id);
+    expect(doc.nodeReferences.size).toBe(2);
   });
 
   it("should delete a node and its children", () => {
     const doc = new DocumentModel({ name: "Test Document" });
-    doc.addNode({
-      children: new Map(),
-      id: "1",
-      parentId: "root",
-      x: 0,
-      y: 0,
-    });
-    doc.addNode({
-      children: new Map(),
-      id: "2",
-      parentId: "1",
-      x: 0,
-      y: 0,
-    });
-    doc.addNode({
-      children: new Map(),
-      id: "4",
-      parentId: "2",
-      x: 0,
-      y: 0,
-    });
-    doc.selectNode("1");
-    doc.addNode({
-      children: new Map(),
-      id: "3",
-      parentId: "1",
-      x: 0,
-      y: 0,
-    });
-    doc.selectNode("1");
-    doc.deleteNode("1");
+    const n1 = doc.addNode({ x: 0, y: 0 });
+    const n2 = doc.addNode({ x: 0, y: 0 });
+    const n4 = doc.addNode({ x: 0, y: 0 });
+    doc.selectNode(n1.id);
+    const n3 = doc.addNode({ x: 0, y: 0 });
+    doc.selectNode(n1.id);
+    doc.deleteNode(n1.id);
+
     expect(doc.children.size).toEqual(0);
     expect(doc.nodeReferences.size).toEqual(0);
     expect(doc.activeNode).toEqual(doc);
-    expect(doc.nodeReferences.get("2")).toBeUndefined();
-    expect(doc.nodeReferences.get("3")).toBeUndefined();
-    expect(doc.nodeReferences.get("4")).toBeUndefined();
+    expect(doc.nodeReferences.get(n2.id)).toBeUndefined();
+    expect(doc.nodeReferences.get(n3.id)).toBeUndefined();
+    expect(doc.nodeReferences.get(n4.id)).toBeUndefined();
   });
 
-  it("should prevent adding a node to a non-existent parent", () => {
+  it("should add under root after deleting the previous active child", () => {
     const doc = new DocumentModel({ name: "Test Document" });
-    doc.addNode({
-      children: new Map(),
-      id: "1",
-      parentId: "root",
-      x: 0,
-      y: 0,
-    });
+    const n1 = doc.addNode({ x: 0, y: 0 });
+    doc.deleteNode(n1.id);
 
-    doc.deleteNode("1");
-
-    expect(() => {
-      doc.addNode({
-        children: new Map(),
-        id: "2",
-        parentId: "1",
-        x: 0,
-        y: 0,
-      });
-    }).toThrow("Parent node not found");
+    const n2 = doc.addNode({ x: 0, y: 0 });
+    expect(n2.parentId).toBe("root");
+    expect(doc.children.get(n2.id)).toBe(n2);
   });
 
-  it("should prevent adding a node to a node that is not a child of the active node", () => {
+  it("should nest under whichever node is active", () => {
     const doc = new DocumentModel({ name: "Test Document" });
-    doc.addNode({
-      children: new Map(),
-      id: "1",
-      parentId: "root",
-      x: 0,
-      y: 0,
-    });
+    const frame = doc.addNode({ x: 0, y: 0 });
     doc.selectNode("root");
-    expect(() => {
-      doc.addNode({
-        children: new Map(),
-        id: "2",
-        parentId: "1",
-        x: 0,
-        y: 0,
-      });
-    }).toThrow("Node is not a child of the active node");
+    const sibling = doc.addNode({ x: 1, y: 1 });
+
+    expect(sibling.parentId).toBe("root");
+    expect(frame.children.size).toBe(0);
+    expect(doc.children.get(sibling.id)).toBe(sibling);
   });
 
   it("should save a flat document without nested children or nodeReferences", () => {
     const doc = new DocumentModel({ name: "Board" });
-    doc.addNode({
-      children: new Map(),
-      id: "1",
-      parentId: "root",
-      x: 0,
-      y: 0,
-    });
-    doc.addNode({
-      children: new Map(),
-      id: "2",
-      parentId: "1",
-      x: 10,
-      y: 10,
-    });
+    const n1 = doc.addNode({ x: 0, y: 0 });
+    const n2 = doc.addNode({ x: 10, y: 10 });
 
     const saved = doc.save();
 
     expect(saved.metadata).toEqual({ name: "Board" });
-    expect(saved.activeNodeId).toBe("2");
+    expect(saved.activeNodeId).toBe(n2.id);
     expect(saved.nodes).toEqual(
       expect.arrayContaining([
-        { id: "1", parentId: "root", x: 0, y: 0 },
-        { id: "2", parentId: "1", x: 10, y: 10 },
+        { id: n1.id, parentId: "root", x: 0, y: 0 },
+        { id: n2.id, parentId: n1.id, x: 10, y: 10 },
       ]),
     );
     expect(saved.nodes).toHaveLength(2);
@@ -169,28 +110,16 @@ describe("createDocument", () => {
 
   it("should round-trip save → load with same tree and index identity", () => {
     const doc = new DocumentModel({ name: "Board" });
-    doc.addNode({
-      children: new Map(),
-      id: "1",
-      parentId: "root",
-      x: 0,
-      y: 0,
-    });
-    doc.addNode({
-      children: new Map(),
-      id: "2",
-      parentId: "1",
-      x: 10,
-      y: 10,
-    });
-    doc.selectNode("1");
+    const n1 = doc.addNode({ x: 0, y: 0 });
+    const n2 = doc.addNode({ x: 10, y: 10 });
+    doc.selectNode(n1.id);
 
     const loaded = DocumentModel.load(doc.save());
 
     expect(loaded.metadata.name).toBe("Board");
-    expect(loaded.activeNode).toBe(loaded.nodeReferences.get("1"));
-    expect(loaded.children.get("1")).toBe(loaded.nodeReferences.get("1"));
-    expect(loaded.children.get("1")?.children.get("2")).toBe(loaded.nodeReferences.get("2"));
+    expect(loaded.activeNode).toBe(loaded.nodeReferences.get(n1.id));
+    expect(loaded.children.get(n1.id)).toBe(loaded.nodeReferences.get(n1.id));
+    expect(loaded.children.get(n1.id)?.children.get(n2.id)).toBe(loaded.nodeReferences.get(n2.id));
     expect(loaded.nodeReferences.size).toBe(2);
   });
 
@@ -211,46 +140,26 @@ describe("createDocument", () => {
 
   it("should update the active node's local x/y in place", () => {
     const doc = new DocumentModel({ name: "Board" });
-    doc.addNode({
-      children: new Map(),
-      id: "1",
-      parentId: "root",
-      x: 0,
-      y: 0,
-    });
-    const before = doc.nodeReferences.get("1");
+    const created = doc.addNode({ x: 0, y: 0 });
 
     const updated = doc.updateNode({ x: 50, y: 25 });
 
     expect(updated.x).toBe(50);
     expect(updated.y).toBe(25);
-    expect(updated).toBe(before);
-    expect(doc.children.get("1")).toBe(updated);
-    expect(doc.nodeReferences.get("1")).toBe(updated);
+    expect(updated).toBe(created);
+    expect(doc.children.get(created.id)).toBe(updated);
+    expect(doc.nodeReferences.get(created.id)).toBe(updated);
   });
 
   it("should not change a child's local coords when the parent is updated", () => {
     const doc = new DocumentModel({ name: "Board" });
-    doc.addNode({
-      children: new Map(),
-      id: "1",
-      parentId: "root",
-      x: 0,
-      y: 0,
-    });
-    doc.addNode({
-      children: new Map(),
-      id: "2",
-      parentId: "1",
-      x: 10,
-      y: 10,
-    });
-    doc.selectNode("1");
+    const parent = doc.addNode({ x: 0, y: 0 });
+    const child = doc.addNode({ x: 10, y: 10 });
+    doc.selectNode(parent.id);
     doc.updateNode({ x: 100, y: 200 });
 
-    const child = doc.nodeReferences.get("2");
-    expect(child?.x).toBe(10);
-    expect(child?.y).toBe(10);
+    expect(child.x).toBe(10);
+    expect(child.y).toBe(10);
   });
 
   it("should prevent updating the root", () => {
