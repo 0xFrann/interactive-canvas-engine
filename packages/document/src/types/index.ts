@@ -6,7 +6,6 @@ interface Node {
   parentId: Node["id"];
 }
 
-/** Local position patch — does not include id, parentId, or children. */
 type NodeUpdate = Partial<Pick<Node, "x" | "y">>;
 
 interface Document {
