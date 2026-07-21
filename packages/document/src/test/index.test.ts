@@ -166,4 +166,56 @@ describe("createDocument", () => {
     const doc = new DocumentModel({ name: "Board" });
     expect(() => doc.updateNode({ x: 1 })).toThrow("Root node cannot be updated");
   });
+
+  it("should reparent the active node under a new parent and keep the subtree", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    const frameA = doc.addNode({ x: 0, y: 0 });
+    doc.selectNode("root");
+    const frameB = doc.addNode({ x: 20, y: 20 });
+    doc.selectNode(frameA.id);
+    const sticky = doc.addNode({ x: 5, y: 5 });
+
+    doc.selectNode(frameA.id);
+    doc.reparentNode(frameB.id);
+
+    expect(frameA.parentId).toBe(frameB.id);
+    expect(doc.children.has(frameA.id)).toBe(false);
+    expect(frameB.children.get(frameA.id)).toBe(frameA);
+    expect(frameA.children.get(sticky.id)).toBe(sticky);
+    expect(sticky.parentId).toBe(frameA.id);
+    expect(doc.nodeReferences.get(frameA.id)).toBe(frameA);
+    expect(doc.nodeReferences.get(sticky.id)).toBe(sticky);
+    expect(doc.activeNode).toBe(frameA);
+  });
+
+  it("should reparent onto root", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    const frame = doc.addNode({ x: 0, y: 0 });
+    const sticky = doc.addNode({ x: 5, y: 5 });
+
+    doc.selectNode(sticky.id);
+    doc.reparentNode("root");
+
+    expect(sticky.parentId).toBe("root");
+    expect(frame.children.has(sticky.id)).toBe(false);
+    expect(doc.children.get(sticky.id)).toBe(sticky);
+  });
+
+  it("should reject reparenting under a descendant (cycle)", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    const frame = doc.addNode({ x: 0, y: 0 });
+    const sticky = doc.addNode({ x: 5, y: 5 });
+
+    doc.selectNode(frame.id);
+    expect(() => doc.reparentNode(sticky.id)).toThrow(
+      "Cannot reparent a node under itself or its descendant",
+    );
+  });
+
+  it("should prevent reparenting the root", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    doc.addNode({ x: 0, y: 0 });
+    doc.selectNode("root");
+    expect(() => doc.reparentNode("root")).toThrow("Root node cannot be reparented");
+  });
 });

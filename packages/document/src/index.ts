@@ -72,6 +72,53 @@ class DocumentModel implements Document {
     return node;
   }
 
+  /**
+   * Move the active node (and its subtree) under a new parent.
+   * Local x/y are unchanged; nodeReferences keeps the same object refs.
+   */
+  reparentNode(newParentId: Node["id"] | Document["id"]): Node {
+    if (!this.activeNode) {
+      throw new Error("No active node");
+    }
+
+    if (this.activeNode === this) {
+      throw new Error("Root node cannot be reparented");
+    }
+
+    const node = this.activeNode as Node;
+    const newParent = this.getNode(newParentId);
+
+    if (node.parentId === newParent.id) {
+      return node;
+    }
+
+    if (this.wouldCreateCycle(node, newParent)) {
+      throw new Error("Cannot reparent a node under itself or its descendant");
+    }
+
+    const oldParent = this.getNode(node.parentId);
+    oldParent.children.delete(node.id);
+    node.parentId = newParent.id;
+    newParent.children.set(node.id, node);
+    return node;
+  }
+
+  /** True if newParent is the node or lies in its subtree (would cycle). */
+  private wouldCreateCycle(node: Node, newParent: Node | DocumentModel): boolean {
+    if (newParent === this) {
+      return false;
+    }
+
+    let current: Node | DocumentModel = newParent;
+    while (current !== this) {
+      if (current === node) {
+        return true;
+      }
+      current = this.getNode((current as Node).parentId);
+    }
+    return false;
+  }
+
   private getNode(id: Node["id"]): Node | DocumentModel {
     if (!id) {
       throw new Error("Node id is required");
