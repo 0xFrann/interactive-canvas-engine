@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Canvas Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,500;0,9..40,600;1,9..40,500&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <header class="chrome">
+        <div class="brand">
+          <p class="brand-name">Interactive Canvas Engine</p>
+          <p class="brand-tag">Interview prep · document → scene → paint</p>
+        </div>
+        <div class="actions">
+          <button type="button" id="btn-add-root">Add on root</button>
+          <button type="button" id="btn-add-child">Add under active</button>
+          <button type="button" id="btn-move-frame" class="secondary">Nudge active +40x</button>
+        </div>
+      </header>
+      <main class="stage">
+        <canvas id="board" width="1200" height="720" aria-label="Canvas board"></canvas>
+        <aside class="hud" aria-live="polite">
+          <p id="hud-active">active: root</p>
+          <p id="hud-count">nodes: 0</p>
+          <p class="hint">Click a sticky to select. Nested children move when you nudge a parent.</p>
+        </aside>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

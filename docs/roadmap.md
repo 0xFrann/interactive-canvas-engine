@@ -7,8 +7,8 @@ North star: [goal.md](./goal.md)
 | # | Topic | Status | Code | Docs | ADR |
 |---|-------|--------|------|------|-----|
 | 1 | Document model | done | [`packages/document`](../packages/document) | [document-model.md](./document-model.md) | [001](./decisions/001-document-as-tree.md)–[004](./decisions/004-reparent-unlink-relink.md) |
-| 2 | Scene graph | building | [`packages/scene-graph`](../packages/scene-graph) | [scene-graph.md](./scene-graph.md) | [005](./decisions/005-scene-graph-on-the-fly-separate-package.md)→[006](./decisions/006-world-on-document-scene-facade.md) |
-| 3 | Renderer | todo | — | — | — |
+| 2 | Scene graph | done | [`packages/scene-graph`](../packages/scene-graph) | [scene-graph.md](./scene-graph.md) | [005](./decisions/005-scene-graph-on-the-fly-separate-package.md)→[006](./decisions/006-world-on-document-scene-facade.md) |
+| 3 | Renderer | building | [`packages/renderer`](../packages/renderer) · [`apps/demo`](../apps/demo) | [renderer.md](./renderer.md) | [007](./decisions/007-isolated-renderer-hardcoded-size.md) |
 | 4 | Camera | todo | — | — | — |
 | 5 | Hit testing | todo | — | — | — |
 | 6 | QuadTree | todo | stretch | — | — |
@@ -16,7 +16,7 @@ North star: [goal.md](./goal.md)
 
 ## Current focus
 
-**#2 Scene graph — building** world on document + thin facade (ADR 006). Open: bounds; camera/hit-test grow scene-graph.
+**#3 Renderer — building** Demo + paint live (hardcoded size). Next: `width`/`height` on Node.
 
 ## Document model — TBD (do not lose)
 
@@ -34,15 +34,25 @@ North star: [goal.md](./goal.md)
 - [ ] Grow scene-graph for camera / hit-test (not just `getWorldPosition`)
 - [ ] If write-path subtree sync hurts under continuous drag, consider dirty flags ([note](./engineering-notes/2026-07-21-world-cache-revisit-at-render.md))
 
+## Renderer — park / plan
+
+- [x] **#3b** `packages/renderer` + `apps/demo` (hardcoded 120×80; [ADR 007](./decisions/007-isolated-renderer-hardcoded-size.md))
+- [ ] **#3a** Node `width` / `height` on document — replace hardcoded size
+- [ ] Camera / viewport (roadmap #4)
+- [ ] Grow scene-graph beyond `getWorldPosition` as camera needs it
+
 ## Next up
 
-1. Start renderer Teach, or bounds when nodes gain size
+1. Add `width`/`height` on Node; wire renderer + demo
 2. Keep Capture habit
 
 ## Session log
 
 | Date | What happened |
 |------|----------------|
+| 2026-07-21 | Renderer + demo app; hardcoded size; ADR 007 |
+| 2026-07-21 | Renderer: lock package + size-before-paint; start #3a Teach |
+| 2026-07-21 | Commit ADR 006; start renderer Teach |
 | 2026-07-21 | ADR 006: worldX/Y on document; reparent preserves world; scene-graph facade |
 | 2026-07-21 | Scene graph: `getWorldPosition` on-the-fly; docs + note; tests green |
 | 2026-07-21 | Scene graph: locked on-the-fly + separate package (ADR 005); cache/dirty parked for renderer |
