@@ -8,9 +8,10 @@ North star: [`docs/goal.md`](./docs/goal.md) · Roadmap: [`docs/roadmap.md`](./d
 
 | Package | Role |
 |---------|------|
-| `@canvas-engine/document` | Tree + locals + maintained world |
+| `@canvas-engine/document` | Tree + locals + size + maintained world |
 | `@canvas-engine/scene-graph` | Render-facing spatial reads |
-| `@canvas-engine/renderer` | Canvas 2D paint (temp hardcoded node size) |
+| `@canvas-engine/camera` | World ↔ screen (pan / zoom) |
+| `@canvas-engine/renderer` | Canvas 2D paint |
 | `@canvas-engine/demo` | Runnable board UI |
 
 ## Demo
@@ -20,7 +21,7 @@ pnpm install
 pnpm dev
 ```
 
-Open the URL Vite prints (default http://localhost:5173). Click stickies to select; add under active / nudge to see nested world updates without rewriting child locals.
+Open the URL Vite prints (default http://localhost:5173). Click to select, drag empty canvas to pan, scroll to zoom, nudge a parent to see nested world follow.
 
 ## Scripts
 

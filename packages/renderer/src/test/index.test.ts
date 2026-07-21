@@ -9,6 +9,7 @@ function mockContext(canvasWidth = 800, canvasHeight = 600) {
     fillRect: vi.fn(),
     fillStyle: "",
     lineWidth: 1,
+    setTransform: vi.fn(),
     strokeRect: vi.fn(),
     strokeStyle: "",
   };

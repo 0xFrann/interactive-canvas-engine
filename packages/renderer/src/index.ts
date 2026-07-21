@@ -1,3 +1,5 @@
+import type { Camera } from "@canvas-engine/camera";
+import { applyCameraTransform } from "@canvas-engine/camera";
 import type { Document } from "@canvas-engine/document";
 import { getWorldPosition } from "@canvas-engine/scene-graph";
 
@@ -14,6 +16,7 @@ export interface RenderOptions {
   nodeStroke?: string;
   activeStroke?: string;
   activeLineWidth?: number;
+  camera?: Camera;
 }
 
 export function renderDocument(
@@ -24,10 +27,17 @@ export function renderDocument(
   const { canvas } = ctx;
   const { width, height } = canvas;
 
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, width, height);
   if (options.background) {
     ctx.fillStyle = options.background;
     ctx.fillRect(0, 0, width, height);
+  }
+
+  const {camera} = options;
+  const zoom = camera?.zoom ?? 1;
+  if (camera) {
+    applyCameraTransform(ctx, camera);
   }
 
   const fill = options.nodeFill ?? DEFAULT_RENDER_OPTIONS.nodeFill;
@@ -51,15 +61,17 @@ export function renderDocument(
     }
 
     ctx.strokeStyle = stroke;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1 / zoom;
     ctx.strokeRect(x, y, node.width, node.height);
   }
 
   if (active) {
     ctx.strokeStyle = activeStroke;
-    ctx.lineWidth = activeLineWidth;
+    ctx.lineWidth = activeLineWidth / zoom;
     ctx.strokeRect(active.x, active.y, active.width, active.height);
   }
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
 export { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "./types";

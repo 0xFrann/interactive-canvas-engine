@@ -20,6 +20,9 @@ importers:
 
   apps/demo:
     dependencies:
+      '@canvas-engine/camera':
+        specifier: workspace:*
+        version: link:../../packages/camera
       '@canvas-engine/document':
         specifier: workspace:*
         version: link:../../packages/document
@@ -37,6 +40,15 @@ importers:
         specifier: 7.3.6
         version: 7.3.6(@types/node@26.1.1)(yaml@2.8.1)
 
+  packages/camera:
+    devDependencies:
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@26.1.1)(supports-color@7.2.0)(yaml@2.8.1)
+
   packages/document:
     devDependencies:
       typescript:
@@ -48,6 +60,9 @@ importers:
 
   packages/renderer:
     dependencies:
+      '@canvas-engine/camera':
+        specifier: workspace:*
+        version: link:../camera
       '@canvas-engine/document':
         specifier: workspace:*
         version: link:../document

@@ -8,15 +8,15 @@ North star: [goal.md](./goal.md)
 |---|-------|--------|------|------|-----|
 | 1 | Document model | done | [`packages/document`](../packages/document) | [document-model.md](./document-model.md) | [001](./decisions/001-document-as-tree.md)–[004](./decisions/004-reparent-unlink-relink.md) |
 | 2 | Scene graph | done | [`packages/scene-graph`](../packages/scene-graph) | [scene-graph.md](./scene-graph.md) | [005](./decisions/005-scene-graph-on-the-fly-separate-package.md)→[006](./decisions/006-world-on-document-scene-facade.md) |
-| 3 | Renderer | building | [`packages/renderer`](../packages/renderer) · [`apps/demo`](../apps/demo) | [renderer.md](./renderer.md) | [007](./decisions/007-isolated-renderer-hardcoded-size.md)–[008](./decisions/008-node-width-height.md) |
-| 4 | Camera | todo | — | — | — |
+| 3 | Renderer | done | [`packages/renderer`](../packages/renderer) · [`apps/demo`](../apps/demo) | [renderer.md](./renderer.md) | [007](./decisions/007-isolated-renderer-hardcoded-size.md)–[008](./decisions/008-node-width-height.md) |
+| 4 | Camera | done | [`packages/camera`](../packages/camera) | [camera.md](./camera.md) | [009](./decisions/009-camera-package.md) |
 | 5 | Hit testing | todo | — | — | — |
 | 6 | QuadTree | todo | stretch | — | — |
 | 7 | Collaboration | todo | skip | planned | — |
 
 ## Current focus
 
-**#3 Renderer — building** Size on Node (ADR 008). Open: camera (#4) / real hit-testing (#5).
+**#5 Hit testing — next** Camera done (ADR 009). Demo still has inline hit-test.
 
 ## Document model — TBD (do not lose)
 
@@ -38,18 +38,23 @@ North star: [goal.md](./goal.md)
 
 - [x] **#3b** `packages/renderer` + `apps/demo` ([ADR 007](./decisions/007-isolated-renderer-hardcoded-size.md))
 - [x] **#3a** Node `width` / `height` ([ADR 008](./decisions/008-node-width-height.md))
-- [ ] Camera / viewport (roadmap #4)
+- [x] Camera / viewport (roadmap #4)
 - [ ] Hit testing package (roadmap #5) — demo hit-test is temporary
+- [ ] Node drag (after hit-test); reparent-on-exit as follow-up
+- [ ] Revisit cache/dirty only after drag exists and hurts
 
 ## Next up
 
-1. Teach camera (pan/zoom) or extract hit-testing
-2. Keep Capture habit
+1. **#5 Hit testing** (package; demo switches to it)
+2. **Node drag** (then optional reparent-on-drop-outside-parent)
+3. **Only then** evaluate cache/dirty under real drag load
 
 ## Session log
 
 | Date | What happened |
 |------|----------------|
+| 2026-07-21 | Plan: hit-test → node drag → evaluate cache/dirty (baby steps) |
+| 2026-07-21 | Camera package + demo pan/zoom (ADR 009) |
 | 2026-07-21 | Node width/height persisted; renderer uses real size (ADR 008) |
 | 2026-07-21 | Renderer + demo app; hardcoded size; ADR 007 |
 | 2026-07-21 | Renderer: lock package + size-before-paint; start #3a Teach |
