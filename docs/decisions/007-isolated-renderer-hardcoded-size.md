@@ -1,6 +1,6 @@
 # ADR 007: Isolated renderer package; temporary hardcoded node size
 
-- **Status:** Accepted
+- **Status:** Superseded in part by [ADR 008](./008-node-width-height.md) (size on Node); package + demo decisions still stand
 - **Date:** 2026-07-21
 - **Topic:** Renderer
 

@@ -1,5 +1,5 @@
 import { DocumentModel } from "@canvas-engine/document";
-import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH, renderDocument } from "@canvas-engine/renderer";
+import { renderDocument } from "@canvas-engine/renderer";
 import "./style.css";
 
 const canvasEl = document.querySelector<HTMLCanvasElement>("#board");
@@ -24,11 +24,10 @@ const ctx: CanvasRenderingContext2D = maybeCtx;
 
 const doc = new DocumentModel({ name: "Demo board" });
 
-// Seed: frame → sticky (nested) + one sibling on root — shows local vs world.
-const frame = doc.addNode({ x: 140, y: 100 });
-doc.addNode({ x: 28, y: 28 });
+const frame = doc.addNode({ height: 160, width: 220, x: 140, y: 100 });
+doc.addNode({ height: 72, width: 100, x: 28, y: 28 });
 doc.selectNode("root");
-doc.addNode({ x: 420, y: 160 });
+doc.addNode({ height: 80, width: 120, x: 420, y: 160 });
 doc.selectNode(frame.id);
 
 function paint(): void {
@@ -54,12 +53,11 @@ function canvasPoint(event: MouseEvent): { x: number; y: number } {
 }
 
 function hitTest(x: number, y: number): string | null {
-  // Top-most wins: later map insertion ≈ newer nodes (good enough for demo).
   let hit: string | null = null;
   for (const node of doc.nodeReferences.values()) {
     const left = node.worldX;
     const top = node.worldY;
-    if (x >= left && x <= left + DEFAULT_NODE_WIDTH && y >= top && y <= top + DEFAULT_NODE_HEIGHT) {
+    if (x >= left && x <= left + node.width && y >= top && y <= top + node.height) {
       hit = node.id;
     }
   }

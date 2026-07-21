@@ -1,30 +1,28 @@
 import type { Document } from "@canvas-engine/document";
 import { getWorldPosition } from "@canvas-engine/scene-graph";
-import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "./types";
+
+const DEFAULT_RENDER_OPTIONS = {
+  activeLineWidth: 3,
+  activeStroke: "#f97316",
+  nodeFill: "#f5e6a8",
+  nodeStroke: "#c4a84b",
+};
 
 export interface RenderOptions {
-  /** Fill behind nodes. Default: clear only. */
   background?: string;
   nodeFill?: string;
   nodeStroke?: string;
-  /** Stroke for `doc.activeNodeId` when it is a node (not root). */
   activeStroke?: string;
   activeLineWidth?: number;
 }
 
-/**
- * Paint every document node as a rect at its world position.
- * Size is hardcoded for now — real width/height land on Node next.
- * Active node (when not root) gets a stronger outline.
- */
 export function renderDocument(
   doc: Document,
   ctx: CanvasRenderingContext2D,
   options: RenderOptions = {},
 ): void {
   const { canvas } = ctx;
-  const {width} = canvas;
-  const {height} = canvas;
+  const { width, height } = canvas;
 
   ctx.clearRect(0, 0, width, height);
   if (options.background) {
@@ -32,36 +30,35 @@ export function renderDocument(
     ctx.fillRect(0, 0, width, height);
   }
 
-  const fill = options.nodeFill ?? "#f5e6a8";
-  const stroke = options.nodeStroke ?? "#c4a84b";
-  const activeStroke = options.activeStroke ?? "#f97316";
-  const activeLineWidth = options.activeLineWidth ?? 3;
+  const fill = options.nodeFill ?? DEFAULT_RENDER_OPTIONS.nodeFill;
+  const stroke = options.nodeStroke ?? DEFAULT_RENDER_OPTIONS.nodeStroke;
+  const activeStroke = options.activeStroke ?? DEFAULT_RENDER_OPTIONS.activeStroke;
+  const activeLineWidth = options.activeLineWidth ?? DEFAULT_RENDER_OPTIONS.activeLineWidth;
   const activeId = doc.activeNodeId === doc.id ? null : doc.activeNodeId;
 
-  let activeNode: { x: number; y: number } | null = null;
+  let active: { x: number; y: number; width: number; height: number } | null = null;
 
   for (const node of doc.nodeReferences.values()) {
     const { x, y } = getWorldPosition(doc, node.id);
     const isActive = node.id === activeId;
 
     ctx.fillStyle = fill;
-    ctx.fillRect(x, y, DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT);
+    ctx.fillRect(x, y, node.width, node.height);
 
     if (isActive) {
-      activeNode = { x, y };
+      active = { height: node.height, width: node.width, x, y };
       continue;
     }
 
     ctx.strokeStyle = stroke;
     ctx.lineWidth = 1;
-    ctx.strokeRect(x, y, DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT);
+    ctx.strokeRect(x, y, node.width, node.height);
   }
 
-  // Draw active outline last so it stays visible when nodes overlap.
-  if (activeNode) {
+  if (active) {
     ctx.strokeStyle = activeStroke;
     ctx.lineWidth = activeLineWidth;
-    ctx.strokeRect(activeNode.x, activeNode.y, DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT);
+    ctx.strokeRect(active.x, active.y, active.width, active.height);
   }
 }
 

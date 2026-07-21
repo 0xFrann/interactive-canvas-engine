@@ -6,6 +6,7 @@ import type {
   SerializedDocument,
   WorldPosition,
 } from "./types";
+import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "./types";
 
 class DocumentModel implements Document {
   readonly id: Document["id"] = "root";
@@ -67,8 +68,10 @@ class DocumentModel implements Document {
 
     const node: Node = {
       children: new Map(),
+      height: props.height ?? DEFAULT_NODE_HEIGHT,
       id: this.createId(),
       parentId: parentNode.id,
+      width: props.width ?? DEFAULT_NODE_WIDTH,
       worldX: origin.x + props.x,
       worldY: origin.y + props.y,
       x: props.x,
@@ -95,7 +98,15 @@ class DocumentModel implements Document {
     if (patch.y !== undefined) {
       node.y = patch.y;
     }
-    this.syncWorldSubtree(node);
+    if (patch.width !== undefined) {
+      node.width = patch.width;
+    }
+    if (patch.height !== undefined) {
+      node.height = patch.height;
+    }
+    if (patch.x !== undefined || patch.y !== undefined) {
+      this.syncWorldSubtree(node);
+    }
     return node;
   }
 
@@ -185,8 +196,10 @@ class DocumentModel implements Document {
     const nodes: SerializedDocument["nodes"] = [];
     for (const node of this.nodeReferences.values()) {
       nodes.push({
+        height: node.height,
         id: node.id,
         parentId: node.parentId,
+        width: node.width,
         x: node.x,
         y: node.y,
       });
@@ -212,8 +225,10 @@ class DocumentModel implements Document {
 
       const node: Node = {
         children: new Map(),
+        height: row.height,
         id: row.id,
         parentId: row.parentId,
+        width: row.width,
         worldX: 0,
         worldY: 0,
         x: row.x,
@@ -243,6 +258,7 @@ class DocumentModel implements Document {
 }
 
 export { DocumentModel };
+export { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "./types";
 export type {
   SerializedDocument,
   SerializedNode,

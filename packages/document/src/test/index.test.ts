@@ -99,8 +99,8 @@ describe("createDocument", () => {
     expect(saved.activeNodeId).toBe(n2.id);
     expect(saved.nodes).toEqual(
       expect.arrayContaining([
-        { id: n1.id, parentId: "root", x: 0, y: 0 },
-        { id: n2.id, parentId: n1.id, x: 10, y: 10 },
+        { height: 80, id: n1.id, parentId: "root", width: 120, x: 0, y: 0 },
+        { height: 80, id: n2.id, parentId: n1.id, width: 120, x: 10, y: 10 },
       ]),
     );
     expect(saved.nodes).toHaveLength(2);
@@ -132,13 +132,15 @@ describe("createDocument", () => {
       activeNodeId: "root",
       metadata: { name: "Board" },
       nodes: [
-        { id: "2", parentId: "1", x: 10, y: 10 },
-        { id: "1", parentId: "root", x: 0, y: 0 },
+        { height: 80, id: "2", parentId: "1", width: 120, x: 10, y: 10 },
+        { height: 100, id: "1", parentId: "root", width: 200, x: 0, y: 0 },
       ],
     });
 
     expect(loaded.children.get("1")).toBeDefined();
     expect(loaded.children.get("1")?.children.get("2")).toBe(loaded.nodeReferences.get("2"));
+    expect(loaded.children.get("1")?.width).toBe(200);
+    expect(loaded.nodeReferences.get("2")?.height).toBe(80);
     expect(loaded.activeNodeId).toBe("root");
     expect(loaded.activeNode).toBe(loaded);
   });
@@ -190,6 +192,24 @@ describe("createDocument", () => {
     expect(frame.worldY).toBe(50);
     expect(sticky.worldX).toBe(120);
     expect(sticky.worldY).toBe(60);
+  });
+
+  it("should default width/height on add and allow size updates without moving world", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    const created = doc.addNode({ x: 10, y: 20 });
+    expect(created.width).toBe(120);
+    expect(created.height).toBe(80);
+
+    const sized = doc.addNode({ height: 40, width: 200, x: 0, y: 0 });
+    expect(sized.width).toBe(200);
+    expect(sized.height).toBe(40);
+
+    doc.selectNode(created.id);
+    doc.updateNode({ height: 50, width: 90 });
+    expect(created.width).toBe(90);
+    expect(created.height).toBe(50);
+    expect(created.worldX).toBe(10);
+    expect(created.worldY).toBe(20);
   });
 
   it("should prevent updating the root", () => {

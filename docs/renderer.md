@@ -10,8 +10,8 @@ Keep draw code out of the document. Same boundary as [Mural’s paint engine sto
 
 ## How it works here
 
-- **`renderDocument(doc, ctx, options?)`** — clear (optional background), then for each node in `nodeReferences`: `getWorldPosition` → `fillRect` / `strokeRect`. Active node (`doc.activeNodeId`, when not root) gets a thicker outline drawn last.
-- **Size:** `DEFAULT_NODE_WIDTH` / `DEFAULT_NODE_HEIGHT` (120×80) hardcoded until `Node` gains `width`/`height`.
+- **`renderDocument(doc, ctx, options?)`** — clear (optional background), then for each node: `getWorldPosition` → `fillRect` / `strokeRect` using **`node.width` / `node.height`**. Active node (`doc.activeNodeId`, when not root) gets a thicker outline drawn last.
+- **Size:** owned by the document ([ADR 008](./decisions/008-node-width-height.md)); renderer re-exports create defaults only for convenience.
 - **Demo:** `apps/demo` wires document + renderer + click select / add / nudge.
 
 ## Alternatives considered
@@ -21,7 +21,7 @@ Keep draw code out of the document. Same boundary as [Mural’s paint engine sto
 
 ## What I would do differently
 
-- Next: move size onto the document and stop hardcoding.
+- Next: nothing urgent on size; camera is the bigger open.
 
 ## Open questions
 

@@ -3,19 +3,24 @@ interface WorldPosition {
   y: number;
 }
 
+const DEFAULT_NODE_WIDTH = 120;
+const DEFAULT_NODE_HEIGHT = 80;
+
 interface Node {
   id: string;
   x: number;
   y: number;
+  width: number;
+  height: number;
   worldX: number;
   worldY: number;
   children: Map<Node["id"], Node>;
   parentId: Node["id"];
 }
 
-type NodeUpdate = Partial<Pick<Node, "x" | "y">>;
+type NodeUpdate = Partial<Pick<Node, "x" | "y" | "width" | "height">>;
 
-type NodeCreate = Pick<Node, "x" | "y">;
+type NodeCreate = Pick<Node, "x" | "y"> & Partial<Pick<Node, "width" | "height">>;
 
 interface Document {
   readonly id: string;
@@ -40,6 +45,8 @@ interface SerializedNode {
   parentId: Node["id"];
   x: number;
   y: number;
+  width: number;
+  height: number;
 }
 
 interface SerializedDocument {
@@ -49,6 +56,8 @@ interface SerializedDocument {
 }
 
 export {
+  DEFAULT_NODE_WIDTH,
+  DEFAULT_NODE_HEIGHT,
   type WorldPosition,
   type Node,
   type NodeUpdate,

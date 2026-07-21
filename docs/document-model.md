@@ -13,15 +13,15 @@ A Mural-like board needs create / nest / select / delete that stay consistent. S
 **Shape (learner-built):**
 
 - **`DocumentModel` is the root** (`id: 'root'`). No separate root node object.
-- **`Node`:** `id`, local `x`/`y`, runtime `worldX`/`worldY`, `parentId`, `children: Map<id, Node>`.
+- **`Node`:** `id`, local `x`/`y`, `width`/`height`, runtime `worldX`/`worldY`, `parentId`, `children: Map<id, Node>`.
 - **Tree:** containment via nested `children` Maps (sibling lookup by id is local O(1)).
 - **`nodeReferences: Map<id, Node>`:** document-wide O(1) get — stores the **same object references** as the tree (not copies).
 - **`activeNodeId`:** selection / insert cursor as an id (`"root"` or a node id). Matches save/load.
 - **`activeNode` (getter):** resolves via `getNode` / `nodeReferences` — convenience only, not a second stored pointer.
-- **API today:** `addNode({ x, y })` (UUID + parent from active; sets world from parent world + local), `selectNode`, `updateNode` (local patch; **syncs world for node + descendants**), `reparentNode` (unlink/relink; **preserves world** by rewriting local; cycle-checked), `deleteNode` (subtree purge + unlink), `save` / `DocumentModel.load` (flat JSON; world recomputed on load).
-- **Local vs world:** `x`/`y` relative to parent (persisted). `worldX`/`worldY` board position (runtime only; [ADR 006](./decisions/006-world-on-document-scene-facade.md)). Child locals unchanged when a frame moves; descendant **world** is updated on write. Render-facing read: `@canvas-engine/scene-graph` `getWorldPosition`.
+- **API today:** `addNode({ x, y, width?, height? })` (UUID + parent from active; size defaults 120×80; sets world from parent world + local), `selectNode`, `updateNode` (local pos and/or size; **syncs world subtree only when x/y change**), `reparentNode` (unlink/relink; **preserves world** by rewriting local; cycle-checked), `deleteNode` (subtree purge + unlink), `save` / `DocumentModel.load` (flat JSON; world recomputed on load).
+- **Local vs world:** `x`/`y` relative to parent (persisted). `worldX`/`worldY` board position (runtime only; [ADR 006](./decisions/006-world-on-document-scene-facade.md)). Child locals unchanged when a frame moves; descendant **world** is updated on write. Box size: [ADR 008](./decisions/008-node-width-height.md). Render-facing read: `@canvas-engine/scene-graph` `getWorldPosition`.
 - **Ids:** created via `crypto.randomUUID()` ([ADR 003](./decisions/003-document-generated-ids.md)); file load preserves stored ids.
-- **Persistence:** file is `{ metadata, nodes[{ id, parentId, x, y }], activeNodeId }` — no `world*`, no nested `children`, no `nodeReferences`. Load: two-pass link, then sync world from locals. See [ADR 002](./decisions/002-flat-json-persistence.md).
+- **Persistence:** file is `{ metadata, nodes[{ id, parentId, x, y, width, height }], activeNodeId }` — no `world*`, no nested `children`, no `nodeReferences`. Load: two-pass link, then sync world from locals. See [ADR 002](./decisions/002-flat-json-persistence.md).
 
 ```mermaid
 flowchart TB

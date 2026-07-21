@@ -8,7 +8,7 @@ North star: [goal.md](./goal.md)
 |---|-------|--------|------|------|-----|
 | 1 | Document model | done | [`packages/document`](../packages/document) | [document-model.md](./document-model.md) | [001](./decisions/001-document-as-tree.md)–[004](./decisions/004-reparent-unlink-relink.md) |
 | 2 | Scene graph | done | [`packages/scene-graph`](../packages/scene-graph) | [scene-graph.md](./scene-graph.md) | [005](./decisions/005-scene-graph-on-the-fly-separate-package.md)→[006](./decisions/006-world-on-document-scene-facade.md) |
-| 3 | Renderer | building | [`packages/renderer`](../packages/renderer) · [`apps/demo`](../apps/demo) | [renderer.md](./renderer.md) | [007](./decisions/007-isolated-renderer-hardcoded-size.md) |
+| 3 | Renderer | building | [`packages/renderer`](../packages/renderer) · [`apps/demo`](../apps/demo) | [renderer.md](./renderer.md) | [007](./decisions/007-isolated-renderer-hardcoded-size.md)–[008](./decisions/008-node-width-height.md) |
 | 4 | Camera | todo | — | — | — |
 | 5 | Hit testing | todo | — | — | — |
 | 6 | QuadTree | todo | stretch | — | — |
@@ -16,7 +16,7 @@ North star: [goal.md](./goal.md)
 
 ## Current focus
 
-**#3 Renderer — building** Demo + paint live (hardcoded size). Next: `width`/`height` on Node.
+**#3 Renderer — building** Size on Node (ADR 008). Open: camera (#4) / real hit-testing (#5).
 
 ## Document model — TBD (do not lose)
 
@@ -36,20 +36,21 @@ North star: [goal.md](./goal.md)
 
 ## Renderer — park / plan
 
-- [x] **#3b** `packages/renderer` + `apps/demo` (hardcoded 120×80; [ADR 007](./decisions/007-isolated-renderer-hardcoded-size.md))
-- [ ] **#3a** Node `width` / `height` on document — replace hardcoded size
+- [x] **#3b** `packages/renderer` + `apps/demo` ([ADR 007](./decisions/007-isolated-renderer-hardcoded-size.md))
+- [x] **#3a** Node `width` / `height` ([ADR 008](./decisions/008-node-width-height.md))
 - [ ] Camera / viewport (roadmap #4)
-- [ ] Grow scene-graph beyond `getWorldPosition` as camera needs it
+- [ ] Hit testing package (roadmap #5) — demo hit-test is temporary
 
 ## Next up
 
-1. Add `width`/`height` on Node; wire renderer + demo
+1. Teach camera (pan/zoom) or extract hit-testing
 2. Keep Capture habit
 
 ## Session log
 
 | Date | What happened |
 |------|----------------|
+| 2026-07-21 | Node width/height persisted; renderer uses real size (ADR 008) |
 | 2026-07-21 | Renderer + demo app; hardcoded size; ADR 007 |
 | 2026-07-21 | Renderer: lock package + size-before-paint; start #3a Teach |
 | 2026-07-21 | Commit ADR 006; start renderer Teach |
