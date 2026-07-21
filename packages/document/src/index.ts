@@ -72,10 +72,6 @@ class DocumentModel implements Document {
     return node;
   }
 
-  /**
-   * Move the active node (and its subtree) under a new parent.
-   * Local x/y are unchanged; nodeReferences keeps the same object refs.
-   */
   reparentNode(newParentId: Node["id"] | Document["id"]): Node {
     if (!this.activeNode) {
       throw new Error("No active node");
@@ -92,7 +88,7 @@ class DocumentModel implements Document {
       return node;
     }
 
-    if (this.wouldCreateCycle(node, newParent)) {
+    if (this.isAncestorOf(node, newParent)) {
       throw new Error("Cannot reparent a node under itself or its descendant");
     }
 
@@ -103,15 +99,14 @@ class DocumentModel implements Document {
     return node;
   }
 
-  /** True if newParent is the node or lies in its subtree (would cycle). */
-  private wouldCreateCycle(node: Node, newParent: Node | DocumentModel): boolean {
-    if (newParent === this) {
+  private isAncestorOf(ancestor: Node, node: Node | DocumentModel): boolean {
+    if (node === this) {
       return false;
     }
 
-    let current: Node | DocumentModel = newParent;
+    let current: Node | DocumentModel = node;
     while (current !== this) {
-      if (current === node) {
+      if (current === ancestor) {
         return true;
       }
       current = this.getNode((current as Node).parentId);
