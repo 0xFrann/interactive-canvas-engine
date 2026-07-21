@@ -26,6 +26,9 @@ importers:
       '@canvas-engine/document':
         specifier: workspace:*
         version: link:../../packages/document
+      '@canvas-engine/hit-testing':
+        specifier: workspace:*
+        version: link:../../packages/hit-testing
       '@canvas-engine/renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
@@ -50,6 +53,19 @@ importers:
         version: 3.2.4(@types/node@26.1.1)(supports-color@7.2.0)(yaml@2.8.1)
 
   packages/document:
+    devDependencies:
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@26.1.1)(supports-color@7.2.0)(yaml@2.8.1)
+
+  packages/hit-testing:
+    dependencies:
+      '@canvas-engine/document':
+        specifier: workspace:*
+        version: link:../document
     devDependencies:
       typescript:
         specifier: 5.8.3

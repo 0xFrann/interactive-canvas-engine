@@ -1,5 +1,6 @@
 import { createCamera, panCamera, screenToWorld, zoomCameraAt } from "@canvas-engine/camera";
 import { DocumentModel } from "@canvas-engine/document";
+import { hitTest } from "@canvas-engine/hit-testing";
 import { renderDocument } from "@canvas-engine/renderer";
 import "./style.css";
 
@@ -66,28 +67,11 @@ const canvasPoint = (event: PointerEvent | MouseEvent | WheelEvent): { x: number
   };
 };
 
-const hitTestWorld = (worldX: number, worldY: number): string | null => {
-  let hit: string | null = null;
-  for (const node of doc.nodeReferences.values()) {
-    const left = node.worldX;
-    const top = node.worldY;
-    if (
-      worldX >= left &&
-      worldX <= left + node.width &&
-      worldY >= top &&
-      worldY <= top + node.height
-    ) {
-      hit = node.id;
-    }
-  }
-  return hit;
-};
-
 const PAN_THRESHOLD_PX = 4;
 let panning = false;
 let panMoved = false;
 let panLast = { x: 0, y: 0 };
-let pendingSelect: string | null = null;
+let pendingSelect: string | undefined;
 
 canvas.addEventListener(
   "wheel",
@@ -108,13 +92,13 @@ canvas.addEventListener("pointerdown", (event) => {
 
   const screen = canvasPoint(event);
   const world = screenToWorld(screen, camera);
-  const hit = hitTestWorld(world.x, world.y);
+  const hit = hitTest(doc, world);
 
   if (event.button === 1 || !hit) {
     panning = true;
     panMoved = false;
     panLast = screen;
-    pendingSelect = null;
+    pendingSelect = undefined;
     canvas.setPointerCapture(event.pointerId);
     return;
   }
@@ -125,7 +109,7 @@ canvas.addEventListener("pointerdown", (event) => {
 });
 
 canvas.addEventListener("pointermove", (event) => {
-  if (!panning && pendingSelect === null) {
+  if (!panning && pendingSelect === undefined) {
     return;
   }
 
@@ -147,7 +131,7 @@ canvas.addEventListener("pointermove", (event) => {
   if (pendingSelect && Math.hypot(dx, dy) >= PAN_THRESHOLD_PX) {
     panning = true;
     panMoved = true;
-    pendingSelect = null;
+    pendingSelect = undefined;
     panLast = screen;
   }
 });
@@ -163,7 +147,7 @@ canvas.addEventListener("pointerup", (event) => {
 
   panning = false;
   panMoved = false;
-  pendingSelect = null;
+  pendingSelect = undefined;
   if (canvas.hasPointerCapture(event.pointerId)) {
     canvas.releasePointerCapture(event.pointerId);
   }

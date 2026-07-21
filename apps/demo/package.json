@@ -12,6 +12,7 @@
   "dependencies": {
     "@canvas-engine/camera": "workspace:*",
     "@canvas-engine/document": "workspace:*",
+    "@canvas-engine/hit-testing": "workspace:*",
     "@canvas-engine/renderer": "workspace:*",
     "@canvas-engine/scene-graph": "workspace:*"
   },

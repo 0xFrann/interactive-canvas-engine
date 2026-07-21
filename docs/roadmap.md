@@ -10,13 +10,13 @@ North star: [goal.md](./goal.md)
 | 2 | Scene graph | done | [`packages/scene-graph`](../packages/scene-graph) | [scene-graph.md](./scene-graph.md) | [005](./decisions/005-scene-graph-on-the-fly-separate-package.md)→[006](./decisions/006-world-on-document-scene-facade.md) |
 | 3 | Renderer | done | [`packages/renderer`](../packages/renderer) · [`apps/demo`](../apps/demo) | [renderer.md](./renderer.md) | [007](./decisions/007-isolated-renderer-hardcoded-size.md)–[008](./decisions/008-node-width-height.md) |
 | 4 | Camera | done | [`packages/camera`](../packages/camera) | [camera.md](./camera.md) | [009](./decisions/009-camera-package.md) |
-| 5 | Hit testing | todo | — | — | — |
+| 5 | Hit testing | done | [`packages/hit-testing`](../packages/hit-testing) | [hit-testing.md](./hit-testing.md) | [010](./decisions/010-hit-testing-package.md) |
 | 6 | QuadTree | todo | stretch | — | — |
 | 7 | Collaboration | todo | skip | planned | — |
 
 ## Current focus
 
-**#5 Hit testing — next** Camera done (ADR 009). Demo still has inline hit-test.
+**Next: node drag** Hit-testing done (ADR 010). Then optional reparent-on-exit; only then evaluate cache/dirty.
 
 ## Document model — TBD (do not lose)
 
@@ -39,20 +39,21 @@ North star: [goal.md](./goal.md)
 - [x] **#3b** `packages/renderer` + `apps/demo` ([ADR 007](./decisions/007-isolated-renderer-hardcoded-size.md))
 - [x] **#3a** Node `width` / `height` ([ADR 008](./decisions/008-node-width-height.md))
 - [x] Camera / viewport (roadmap #4)
-- [ ] Hit testing package (roadmap #5) — demo hit-test is temporary
+- [x] Hit testing package (roadmap #5)
 - [ ] Node drag (after hit-test); reparent-on-exit as follow-up
 - [ ] Revisit cache/dirty only after drag exists and hurts
 
 ## Next up
 
-1. **#5 Hit testing** (package; demo switches to it)
-2. **Node drag** (then optional reparent-on-drop-outside-parent)
-3. **Only then** evaluate cache/dirty under real drag load
+1. **Node drag** (pointer move → update locals)
+2. Optional **reparent when dropping outside parent**
+3. **Only then** evaluate cache/dirty
 
 ## Session log
 
 | Date | What happened |
 |------|----------------|
+| 2026-07-21 | Hit-testing package; demo uses world-space pick (ADR 010) |
 | 2026-07-21 | Plan: hit-test → node drag → evaluate cache/dirty (baby steps) |
 | 2026-07-21 | Camera package + demo pan/zoom (ADR 009) |
 | 2026-07-21 | Node width/height persisted; renderer uses real size (ADR 008) |

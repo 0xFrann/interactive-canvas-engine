@@ -4,8 +4,8 @@
   "scripts": {
     "prepare": "git config core.hooksPath .githooks",
     "dev": "pnpm --filter @canvas-engine/demo dev",
-    "test": "pnpm --filter @canvas-engine/document --filter @canvas-engine/scene-graph --filter @canvas-engine/camera --filter @canvas-engine/renderer test",
-    "typecheck": "pnpm --filter @canvas-engine/document --filter @canvas-engine/scene-graph --filter @canvas-engine/camera --filter @canvas-engine/renderer --filter @canvas-engine/demo typecheck",
+    "test": "pnpm --filter @canvas-engine/document --filter @canvas-engine/scene-graph --filter @canvas-engine/camera --filter @canvas-engine/renderer --filter @canvas-engine/hit-testing test",
+    "typecheck": "pnpm --filter @canvas-engine/document --filter @canvas-engine/scene-graph --filter @canvas-engine/camera --filter @canvas-engine/renderer --filter @canvas-engine/hit-testing --filter @canvas-engine/demo typecheck",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "format": "oxfmt .",
