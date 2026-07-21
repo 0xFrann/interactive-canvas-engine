@@ -1,4 +1,4 @@
-import type { Document, Node } from "./types";
+import type { Document, Node, NodeUpdate, SerializedDocument } from "./types";
 
 class DocumentModel implements Document {
   readonly id: Document["id"] = "root";
@@ -19,7 +19,7 @@ class DocumentModel implements Document {
       throw new Error("Root node cannot be overridden");
     }
 
-    // Same object in tree + index + activeNode (not a copy).
+    // Same object in tree + index + activeNode
     parentNode.children.set(node.id, node);
     this.nodeReferences.set(node.id, node);
     this.activeNode = node;
@@ -48,6 +48,25 @@ class DocumentModel implements Document {
 
   selectNode(id: Node["id"]): void {
     this.activeNode = this.getNode(id);
+  }
+
+  updateNode(patch: NodeUpdate): Node {
+    if (!this.activeNode) {
+      throw new Error("No active node");
+    }
+
+    if (this.activeNode === this) {
+      throw new Error("Root node cannot be updated");
+    }
+
+    const node = this.activeNode as Node;
+    if (patch.x !== undefined) {
+      node.x = patch.x;
+    }
+    if (patch.y !== undefined) {
+      node.y = patch.y;
+    }
+    return node;
   }
 
   private getNode(id: Node["id"]): Node | DocumentModel {
@@ -93,6 +112,64 @@ class DocumentModel implements Document {
     parentNode.children.delete(deleted.id);
     this.activeNode = parentNode;
   }
+
+  save(): SerializedDocument {
+    if (!this.activeNode) {
+      throw new Error("No active node");
+    }
+
+    const nodes: SerializedDocument["nodes"] = [];
+    for (const node of this.nodeReferences.values()) {
+      nodes.push({
+        id: node.id,
+        parentId: node.parentId,
+        x: node.x,
+        y: node.y,
+      });
+    }
+
+    return {
+      activeNodeId: this.activeNode.id,
+      metadata: { ...this.metadata },
+      nodes,
+    };
+  }
+
+  static load(data: SerializedDocument): DocumentModel {
+    const doc = new DocumentModel({ ...data.metadata });
+
+    for (const row of data.nodes) {
+      if (row.id === "root") {
+        throw new Error("Root node cannot be overridden");
+      }
+      if (doc.nodeReferences.has(row.id)) {
+        throw new Error(`Duplicate node id: ${row.id}`);
+      }
+
+      const node: Node = {
+        children: new Map(),
+        id: row.id,
+        parentId: row.parentId,
+        x: row.x,
+        y: row.y,
+      };
+      doc.nodeReferences.set(node.id, node);
+    }
+
+    for (const node of doc.nodeReferences.values()) {
+      const parent = node.parentId === "root" ? doc : doc.nodeReferences.get(node.parentId);
+
+      if (!parent) {
+        throw new Error(`Parent node not found: ${node.parentId}`);
+      }
+
+      parent.children.set(node.id, node);
+    }
+
+    doc.activeNode = doc.getNode(data.activeNodeId);
+    return doc;
+  }
 }
 
 export { DocumentModel };
+export type { SerializedDocument, SerializedNode, Node, NodeUpdate, Document } from "./types";

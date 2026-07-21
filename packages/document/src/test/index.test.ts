@@ -131,4 +131,130 @@ describe("createDocument", () => {
       });
     }).toThrow("Node is not a child of the active node");
   });
+
+  it("should save a flat document without nested children or nodeReferences", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    doc.addNode({
+      children: new Map(),
+      id: "1",
+      parentId: "root",
+      x: 0,
+      y: 0,
+    });
+    doc.addNode({
+      children: new Map(),
+      id: "2",
+      parentId: "1",
+      x: 10,
+      y: 10,
+    });
+
+    const saved = doc.save();
+
+    expect(saved.metadata).toEqual({ name: "Board" });
+    expect(saved.activeNodeId).toBe("2");
+    expect(saved.nodes).toEqual(
+      expect.arrayContaining([
+        { id: "1", parentId: "root", x: 0, y: 0 },
+        { id: "2", parentId: "1", x: 10, y: 10 },
+      ]),
+    );
+    expect(saved.nodes).toHaveLength(2);
+    expect(saved).not.toHaveProperty("children");
+    expect(saved).not.toHaveProperty("nodeReferences");
+    for (const row of saved.nodes) {
+      expect(row).not.toHaveProperty("children");
+    }
+  });
+
+  it("should round-trip save → load with same tree and index identity", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    doc.addNode({
+      children: new Map(),
+      id: "1",
+      parentId: "root",
+      x: 0,
+      y: 0,
+    });
+    doc.addNode({
+      children: new Map(),
+      id: "2",
+      parentId: "1",
+      x: 10,
+      y: 10,
+    });
+    doc.selectNode("1");
+
+    const loaded = DocumentModel.load(doc.save());
+
+    expect(loaded.metadata.name).toBe("Board");
+    expect(loaded.activeNode).toBe(loaded.nodeReferences.get("1"));
+    expect(loaded.children.get("1")).toBe(loaded.nodeReferences.get("1"));
+    expect(loaded.children.get("1")?.children.get("2")).toBe(loaded.nodeReferences.get("2"));
+    expect(loaded.nodeReferences.size).toBe(2);
+  });
+
+  it("should load when a child appears before its parent in the file", () => {
+    const loaded = DocumentModel.load({
+      activeNodeId: "root",
+      metadata: { name: "Board" },
+      nodes: [
+        { id: "2", parentId: "1", x: 10, y: 10 },
+        { id: "1", parentId: "root", x: 0, y: 0 },
+      ],
+    });
+
+    expect(loaded.children.get("1")).toBeDefined();
+    expect(loaded.children.get("1")?.children.get("2")).toBe(loaded.nodeReferences.get("2"));
+    expect(loaded.activeNode).toBe(loaded);
+  });
+
+  it("should update the active node's local x/y in place", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    doc.addNode({
+      children: new Map(),
+      id: "1",
+      parentId: "root",
+      x: 0,
+      y: 0,
+    });
+    const before = doc.nodeReferences.get("1");
+
+    const updated = doc.updateNode({ x: 50, y: 25 });
+
+    expect(updated.x).toBe(50);
+    expect(updated.y).toBe(25);
+    expect(updated).toBe(before);
+    expect(doc.children.get("1")).toBe(updated);
+    expect(doc.nodeReferences.get("1")).toBe(updated);
+  });
+
+  it("should not change a child's local coords when the parent is updated", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    doc.addNode({
+      children: new Map(),
+      id: "1",
+      parentId: "root",
+      x: 0,
+      y: 0,
+    });
+    doc.addNode({
+      children: new Map(),
+      id: "2",
+      parentId: "1",
+      x: 10,
+      y: 10,
+    });
+    doc.selectNode("1");
+    doc.updateNode({ x: 100, y: 200 });
+
+    const child = doc.nodeReferences.get("2");
+    expect(child?.x).toBe(10);
+    expect(child?.y).toBe(10);
+  });
+
+  it("should prevent updating the root", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    expect(() => doc.updateNode({ x: 1 })).toThrow("Root node cannot be updated");
+  });
 });
