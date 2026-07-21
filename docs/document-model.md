@@ -57,7 +57,7 @@ flowchart TB
 - [x] Stable id generation (`crypto.randomUUID` on `addNode`; [ADR 003](./decisions/003-document-generated-ids.md))
 - [x] Reparent / move in tree (`reparentNode`; [ADR 004](./decisions/004-reparent-unlink-relink.md))
 - [x] Cursor stored as `activeNodeId` (getter `activeNode` resolves from index)
-- [ ] Scene graph: local `x,y` → world coordinates (roadmap #2)
+- [x] Scene graph: local `x,y` → world coordinates (`getWorldPosition`; roadmap #2 first slice)
 - [ ] Optional: adjust local coords on reparent to preserve world position
 
 ## Trade-offs

@@ -1,5 +1,5 @@
 {
-  "name": "@canvas-engine/document",
+  "name": "@canvas-engine/scene-graph",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -9,6 +9,9 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
+  },
+  "dependencies": {
+    "@canvas-engine/document": "workspace:*"
   },
   "devDependencies": {
     "typescript": "5.8.3",

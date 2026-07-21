@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "prepare": "git config core.hooksPath .githooks",
-    "test": "pnpm --filter @canvas-engine/document test",
-    "typecheck": "pnpm --filter @canvas-engine/document typecheck",
+    "test": "pnpm --filter @canvas-engine/document --filter @canvas-engine/scene-graph test",
+    "typecheck": "pnpm --filter @canvas-engine/document --filter @canvas-engine/scene-graph typecheck",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "format": "oxfmt .",

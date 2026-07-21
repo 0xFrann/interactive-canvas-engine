@@ -7,7 +7,7 @@ North star: [goal.md](./goal.md)
 | # | Topic | Status | Code | Docs | ADR |
 |---|-------|--------|------|------|-----|
 | 1 | Document model | done | [`packages/document`](../packages/document) | [document-model.md](./document-model.md) | [001](./decisions/001-document-as-tree.md)–[004](./decisions/004-reparent-unlink-relink.md) |
-| 2 | Scene graph | todo | — | — | — |
+| 2 | Scene graph | building | [`packages/scene-graph`](../packages/scene-graph) | [scene-graph.md](./scene-graph.md) | [005](./decisions/005-scene-graph-on-the-fly-separate-package.md) |
 | 3 | Renderer | todo | — | — | — |
 | 4 | Camera | todo | — | — | — |
 | 5 | Hit testing | todo | — | — | — |
@@ -16,7 +16,7 @@ North star: [goal.md](./goal.md)
 
 ## Current focus
 
-**Next: Teach scene graph** (local → world). Document model TBDs closed.
+**#2 Scene graph — building** first slice done: `getWorldPosition`. Open: world↔local, bounds; cache parked for #3.
 
 ## Document model — TBD (do not lose)
 
@@ -28,15 +28,22 @@ North star: [goal.md](./goal.md)
 - [x] Insert UX — keep select-then-add under active; cursor is `activeNodeId` (+ getter)
 - [x] `activeNodeId` cursor refactor (getter resolves via index)
 
+## Scene graph — park / revisit
+
+- [ ] **Revisit world cache/dirty when renderer pain is real** (60fps + many nodes + frequent world reads). See [note](./engineering-notes/2026-07-21-world-cache-revisit-at-render.md) + [ADR 005](./decisions/005-scene-graph-on-the-fly-separate-package.md).
+
 ## Next up
 
-1. Teach **scene graph** (local → world)
-2. Keep Capture habit after each slice
+1. Decide next scene-graph slice (world→local / bounds) or start renderer Teach
+2. Keep Capture habit
 
 ## Session log
 
 | Date | What happened |
 |------|----------------|
+| 2026-07-21 | Scene graph: `getWorldPosition` on-the-fly; docs + note; tests green |
+| 2026-07-21 | Scene graph: locked on-the-fly + separate package (ADR 005); cache/dirty parked for renderer |
+| 2026-07-21 | Scene graph: start Teach (local→world); first slice scoped |
 | 2026-07-20 | Goal condensed; coach agent + roadmap created |
 | 2026-07-20 | Document model: ADR 001 (tree); discovery build; hybrid index; same-ref fix |
 | 2026-07-20 | Capture: document-model.md + session-close note; TBDs parked; slice marked done |
