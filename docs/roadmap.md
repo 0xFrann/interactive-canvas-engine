@@ -16,19 +16,20 @@ North star: [goal.md](./goal.md)
 
 ## Current focus
 
-**Paused after Document model Capture.** Next session: TBD items below, or Teach **scene graph**.
+**Document model TBDs** — finishing consistency + persistence before scene graph.
 
 ## Document model — TBD (do not lose)
 
-- [ ] Delete subtree + purge descendants from `nodeReferences`
+- [x] Delete subtree + purge descendants from `nodeReferences`
 - [ ] JSON save/load (serialize `Map`s)
 - [ ] Id generation; update / reparent
 - [ ] Revisit `activeNode` insert rules if they get in the way
 
 ## Next up
 
-1. Pick up a TBD **or** start scene graph (local → world)
-2. Keep Capture habit after each slice
+1. JSON save/load
+2. Ids + update/reparent (as needed)
+3. Then Teach **scene graph** (local → world)
 
 ## Session log
 
@@ -37,3 +38,4 @@ North star: [goal.md](./goal.md)
 | 2026-07-20 | Goal condensed; coach agent + roadmap created |
 | 2026-07-20 | Document model: ADR 001 (tree); discovery build; hybrid index; same-ref fix |
 | 2026-07-20 | Capture: document-model.md + session-close note; TBDs parked; slice marked done |
+| 2026-07-21 | Subtree delete: recursive purge of `nodeReferences` + unlink; tests green |

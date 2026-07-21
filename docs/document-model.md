@@ -17,7 +17,7 @@ A Mural-like board needs create / nest / select / delete that stay consistent. S
 - **Tree:** containment via nested `children` Maps (sibling lookup by id is local O(1)).
 - **`nodeReferences: Map<id, Node>`:** document-wide O(1) get — stores the **same object references** as the tree (not copies).
 - **`activeNode`:** live reference to the current insert/selection cursor (`Document` or `Node`).
-- **API today:** `addNode`, `selectNode`, `deleteNode` (single node; see TBD), `getNode` (private, via index).
+- **API today:** `addNode`, `selectNode`, `deleteNode` (subtree: recursive purge of `nodeReferences`, then unlink from parent), `getNode` (private, via index).
 
 ```mermaid
 flowchart TB
@@ -47,7 +47,7 @@ flowchart TB
 
 ## Open questions / TBD
 
-- [ ] `deleteNode` should remove **descendants** from `nodeReferences` (and tree), not only the selected node
+- [x] `deleteNode` removes **descendants** from `nodeReferences` (and unlinks subtree from parent)
 - [ ] JSON **save/load** (`Map` does not `JSON.stringify` cleanly — need a serializable shape)
 - [ ] Stable id generation (not only caller-provided ids)
 - [ ] Update/move/reparent APIs

@@ -66,6 +66,13 @@ class DocumentModel implements Document {
     return node;
   }
 
+  private clearSubtreeFromIndex(node: Node): void {
+    for (const child of node.children.values()) {
+      this.clearSubtreeFromIndex(child);
+    }
+    this.nodeReferences.delete(node.id);
+  }
+
   deleteNode(id: Node["id"]): void {
     if (!this.activeNode) {
       throw new Error("No active node");
@@ -79,9 +86,11 @@ class DocumentModel implements Document {
       throw new Error("Root node cannot be deleted");
     }
 
-    const parentNode = this.getNode((this.activeNode as Node).parentId);
-    parentNode.children.delete(this.activeNode.id);
-    this.nodeReferences.delete(this.activeNode.id);
+    const deleted = this.activeNode as Node;
+    const parentNode = this.getNode(deleted.parentId);
+
+    this.clearSubtreeFromIndex(deleted);
+    parentNode.children.delete(deleted.id);
     this.activeNode = parentNode;
   }
 }

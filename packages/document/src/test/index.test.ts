@@ -47,6 +47,47 @@ describe("createDocument", () => {
     });
   });
 
+  it("should delete a node and its children", () => {
+    const doc = new DocumentModel({ name: "Test Document" });
+    doc.addNode({
+      children: new Map(),
+      id: "1",
+      parentId: "root",
+      x: 0,
+      y: 0,
+    });
+    doc.addNode({
+      children: new Map(),
+      id: "2",
+      parentId: "1",
+      x: 0,
+      y: 0,
+    });
+    doc.addNode({
+      children: new Map(),
+      id: "4",
+      parentId: "2",
+      x: 0,
+      y: 0,
+    });
+    doc.selectNode("1");
+    doc.addNode({
+      children: new Map(),
+      id: "3",
+      parentId: "1",
+      x: 0,
+      y: 0,
+    });
+    doc.selectNode("1");
+    doc.deleteNode("1");
+    expect(doc.children.size).toEqual(0);
+    expect(doc.nodeReferences.size).toEqual(0);
+    expect(doc.activeNode).toEqual(doc);
+    expect(doc.nodeReferences.get("2")).toBeUndefined();
+    expect(doc.nodeReferences.get("3")).toBeUndefined();
+    expect(doc.nodeReferences.get("4")).toBeUndefined();
+  });
+
   it("should prevent adding a node to a non-existent parent", () => {
     const doc = new DocumentModel({ name: "Test Document" });
     doc.addNode({
