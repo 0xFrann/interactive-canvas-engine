@@ -1,6 +1,6 @@
 import { createCamera, panCamera, screenToWorld, zoomCameraAt } from "@canvas-engine/camera";
 import { DocumentModel } from "@canvas-engine/document";
-import { hitTest } from "@canvas-engine/hit-testing";
+import { hitTest, resolveDropParent } from "@canvas-engine/hit-testing";
 import { renderDocument } from "@canvas-engine/renderer";
 import "./style.css";
 
@@ -169,6 +169,17 @@ canvas.addEventListener("pointerup", (event) => {
   if (interaction?.kind === "pan" && !interaction.moved && event.button === 0) {
     doc.selectNode("root");
     paint();
+  }
+
+  if (interaction?.kind === "node" && interaction.moved) {
+    const cursor = screenToWorld(canvasPoint(event), camera);
+    const nextParent = resolveDropParent(doc, interaction.nodeId, cursor);
+    if (nextParent !== undefined) {
+      doc.selectNode(interaction.nodeId);
+      doc.reparentNode(nextParent);
+      doc.selectNode(nextParent);
+      paint();
+    }
   }
 
   interaction = undefined;

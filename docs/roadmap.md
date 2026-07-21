@@ -16,7 +16,7 @@ North star: [goal.md](./goal.md)
 
 ## Current focus
 
-**Next: optional reparent-on-exit** Node drag live (ADR 011). Then evaluate cache/dirty under drag load.
+**Next: evaluate cache/dirty under drag** Drop reparent done (ADR 012). Only add dirty if write path hurts.
 
 ## Document model — TBD (do not lose)
 
@@ -41,19 +41,19 @@ North star: [goal.md](./goal.md)
 - [x] Camera / viewport (roadmap #4)
 - [x] Hit testing package (roadmap #5)
 - [x] Node drag in demo (world delta → local `updateNode`; [ADR 011](./decisions/011-node-drag-demo.md))
-- [ ] Reparent when dropping outside current parent
+- [x] Drop reparent: cursor adopt + leave-parent-to-root ([ADR 012](./decisions/012-drop-reparent.md))
 - [ ] Revisit cache/dirty only after drag exists and hurts
 
 ## Next up
 
-1. Optional **reparent when dropping outside parent**
-2. **Evaluate cache/dirty** under real drag (only if it hurts)
-3. QuadTree stretch / collaboration docs
+1. **Evaluate cache/dirty** under real nested drag (only if it hurts)
+2. QuadTree stretch / collaboration docs
 
 ## Session log
 
 | Date | What happened |
 |------|----------------|
+| 2026-07-21 | Drop reparent (uncommitted): cursor adopt; leave parent when cursor exits box |
 | 2026-07-21 | Demo node drag via world delta → local update (ADR 011) |
 | 2026-07-21 | Hit-testing package; demo uses world-space pick (ADR 010) |
 | 2026-07-21 | Plan: hit-test → node drag → evaluate cache/dirty (baby steps) |

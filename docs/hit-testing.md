@@ -10,9 +10,9 @@ Selection, drag, and tools need “what did the user point at?” Camera convert
 
 ## How it works here
 
-- **`hitTest(doc, { x, y })`** — scan `nodeReferences`; axis-aligned box from `worldX`/`worldY` + `width`/`height`.
-- **Top-most wins** — last matching node in map iteration order (good enough until explicit z-order).
-- **Demo:** `screenToWorld` then `hitTest` for click / pan-vs-select.
+- **`hitTest(doc, point, options?)`** — scan `nodeReferences`; AABB from `worldX`/`worldY` + size. Optional `ignoreSubtreeOf` for drop targets.
+- **`resolveDropParent(doc, draggedId, cursor)`** — drop policy: cursor over another node → that parent; else **cursor** outside current parent → `root`; else no change.
+- **Demo:** select/drag uses `hitTest`; on drag end uses `resolveDropParent` + `reparentNode`.
 
 ## Alternatives considered
 
@@ -25,8 +25,8 @@ Selection, drag, and tools need “what did the user point at?” Camera convert
 
 ## Open questions
 
-- [ ] Node drag (next baby step) — done in demo; see [ADR 011](./decisions/011-node-drag-demo.md)
-- [ ] Reparent when dropping outside current parent
+- [x] Node drag (demo) + drop reparent ([ADR 011](./decisions/011-node-drag-demo.md), [ADR 012](./decisions/012-drop-reparent.md))
+- [x] Reparent when dropping outside current parent / into another box
 - [ ] Spatial index when N grows (roadmap #6)
 
 ## Trade-offs
