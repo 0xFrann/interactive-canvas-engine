@@ -1,6 +1,7 @@
 import type { Document, Node, WorldPosition } from "@canvas-engine/document";
 
 export function getWorldPosition(doc: Document, nodeId: Node["id"]): WorldPosition {
+  doc.ensureWorld();
   const node = doc.nodeReferences.get(nodeId);
   if (!node) {
     throw new Error(`Node not found: ${nodeId}`);

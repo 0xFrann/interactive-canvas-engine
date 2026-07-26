@@ -14,6 +14,10 @@ class DocumentModel implements Document {
   readonly children: Document["children"];
   readonly nodeReferences: Document["nodeReferences"];
   activeNodeId: Document["activeNodeId"];
+  /** Single pending world-sync root (one dragged ancestor at a time). */
+  private dirtyRootId: Node["id"] | null = null;
+  /** Increments when ensureWorld actually runs syncWorldSubtree. */
+  worldSyncCount = 0;
 
   constructor(metadata: Document["metadata"]) {
     this.metadata = metadata;
@@ -47,6 +51,25 @@ class DocumentModel implements Document {
     }
   }
 
+  private markWorldDirty(nodeId: Node["id"]): void {
+    if (this.dirtyRootId !== null && this.dirtyRootId !== nodeId) {
+      this.ensureWorld();
+    }
+    this.dirtyRootId = nodeId;
+  }
+
+  ensureWorld(): void {
+    if (this.dirtyRootId === null) {
+      return;
+    }
+    const node = this.nodeReferences.get(this.dirtyRootId);
+    this.dirtyRootId = null;
+    if (node) {
+      this.worldSyncCount += 1;
+      this.syncWorldSubtree(node);
+    }
+  }
+
   private createNode(node: Node, parentNode: Node | Document): Node {
     if (node.id === "root") {
       throw new Error("Root node cannot be overridden");
@@ -63,6 +86,7 @@ class DocumentModel implements Document {
   }
 
   addNode(props: NodeCreate): Node {
+    this.ensureWorld();
     const parentNode = this.getNode(this.activeNodeId);
     const origin = this.parentWorld(parentNode);
 
@@ -105,7 +129,7 @@ class DocumentModel implements Document {
       node.height = patch.height;
     }
     if (patch.x !== undefined || patch.y !== undefined) {
-      this.syncWorldSubtree(node);
+      this.markWorldDirty(node.id);
     }
     return node;
   }
@@ -115,6 +139,7 @@ class DocumentModel implements Document {
       throw new Error("Root node cannot be reparented");
     }
 
+    this.ensureWorld();
     const node = this.getNode(this.activeNodeId) as Node;
     const newParent = this.getNode(newParentId);
 

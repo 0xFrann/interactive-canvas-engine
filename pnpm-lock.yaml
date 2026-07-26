@@ -32,6 +32,9 @@ importers:
       '@canvas-engine/renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
+      '@canvas-engine/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@canvas-engine/scene-graph':
         specifier: workspace:*
         version: link:../../packages/scene-graph
@@ -85,6 +88,15 @@ importers:
       '@canvas-engine/scene-graph':
         specifier: workspace:*
         version: link:../scene-graph
+    devDependencies:
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@26.1.1)(supports-color@7.2.0)(yaml@2.8.1)
+
+  packages/runtime:
     devDependencies:
       typescript:
         specifier: 5.8.3

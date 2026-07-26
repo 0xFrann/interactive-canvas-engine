@@ -24,6 +24,7 @@ export function renderDocument(
   ctx: CanvasRenderingContext2D,
   options: RenderOptions = {},
 ): void {
+  doc.ensureWorld();
   const { canvas } = ctx;
   const { width, height } = canvas;
 
@@ -34,7 +35,7 @@ export function renderDocument(
     ctx.fillRect(0, 0, width, height);
   }
 
-  const {camera} = options;
+  const { camera } = options;
   const zoom = camera?.zoom ?? 1;
   if (camera) {
     applyCameraTransform(ctx, camera);

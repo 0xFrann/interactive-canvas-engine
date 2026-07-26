@@ -11,12 +11,13 @@ North star: [goal.md](./goal.md)
 | 3 | Renderer | done | [`packages/renderer`](../packages/renderer) · [`apps/demo`](../apps/demo) | [renderer.md](./renderer.md) | [007](./decisions/007-isolated-renderer-hardcoded-size.md)–[008](./decisions/008-node-width-height.md) |
 | 4 | Camera | done | [`packages/camera`](../packages/camera) | [camera.md](./camera.md) | [009](./decisions/009-camera-package.md) |
 | 5 | Hit testing | done | [`packages/hit-testing`](../packages/hit-testing) | [hit-testing.md](./hit-testing.md) | [010](./decisions/010-hit-testing-package.md) |
+| — | Runtime (frame loop) | done | [`packages/runtime`](../packages/runtime) | [runtime.md](./runtime.md) | [015](./decisions/015-runtime-frame-loop.md) |
 | 6 | QuadTree | todo | stretch | — | — |
 | 7 | Collaboration | todo | skip | planned | — |
 
 ## Current focus
 
-**Next: evaluate cache/dirty under drag** Drop reparent done (ADR 012). Only add dirty if write path hurts.
+**Core loop + dirty + runtime frame clock done.** Next: QuadTree stretch and/or collaboration docs (problem-first).
 
 ## Document model — TBD (do not lose)
 
@@ -31,8 +32,9 @@ North star: [goal.md](./goal.md)
 ## Scene graph — park / revisit
 
 - [x] World on document + reparent preserve ([ADR 006](./decisions/006-world-on-document-scene-facade.md)); scene-graph kept as read facade
-- [ ] Grow scene-graph for camera / hit-test (not just `getWorldPosition`)
-- [ ] If write-path subtree sync hurts under continuous drag, consider dirty flags ([note](./engineering-notes/2026-07-21-world-cache-revisit-at-render.md))
+- [x] Dirty root + `ensureWorld` ([ADR 014](./decisions/014-dirty-root-ensure-world.md); supersedes stay-eager [ADR 013](./decisions/013-eager-world-sync-dirty-deferred.md))
+- [ ] Grow scene-graph beyond facade when camera/hit need more than `getWorldPosition`
+- [ ] Dirty `Set` if multi-root batch updates share one paint
 
 ## Renderer — park / plan
 
@@ -42,18 +44,23 @@ North star: [goal.md](./goal.md)
 - [x] Hit testing package (roadmap #5)
 - [x] Node drag in demo (world delta → local `updateNode`; [ADR 011](./decisions/011-node-drag-demo.md))
 - [x] Drop reparent: cursor adopt + leave-parent-to-root ([ADR 012](./decisions/012-drop-reparent.md))
-- [ ] Revisit cache/dirty only after drag exists and hurts
+- [x] Cache/dirty: `dirtyRootId` + `ensureWorld` ([ADR 014](./decisions/014-dirty-root-ensure-world.md))
+- [x] Runtime frame loop owns RAF coalesce ([ADR 015](./decisions/015-runtime-frame-loop.md))
 
 ## Next up
 
-1. **Evaluate cache/dirty** under real nested drag (only if it hurts)
-2. QuadTree stretch / collaboration docs
+1. QuadTree stretch (problem-first: when linear hit-test hurts) and/or collaboration docs
+2. Keep Capture habit
 
 ## Session log
 
 | Date | What happened |
 |------|----------------|
-| 2026-07-21 | Drop reparent (uncommitted): cursor adopt; leave parent when cursor exits box |
+| 2026-07-22 | Capture: dirty still useful across browsers/OS (coalesced input, stutter, mobile) |
+| 2026-07-22 | `@canvas-engine/runtime` frame loop; demo uses `requestFrame` (ADR 015) |
+| 2026-07-22 | Dirty implemented: single `dirtyRootId` + `ensureWorld` (ADR 014) |
+| 2026-07-22 | Dirty taught problem-first (input vs paint); ADR 013 stay eager; coach skill updated |
+| 2026-07-21 | Drop reparent: cursor adopt; leave parent when cursor exits box (ADR 012) |
 | 2026-07-21 | Demo node drag via world delta → local update (ADR 011) |
 | 2026-07-21 | Hit-testing package; demo uses world-space pick (ADR 010) |
 | 2026-07-21 | Plan: hit-test → node drag → evaluate cache/dirty (baby steps) |

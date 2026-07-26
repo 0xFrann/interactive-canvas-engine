@@ -37,6 +37,9 @@ interface Document {
   updateNode(patch: NodeUpdate): Node;
   reparentNode(newParentId: Node["id"] | Document["id"]): Node;
   deleteNode(id: Node["id"]): void;
+  ensureWorld(): void;
+  /** How many times a dirty root was flushed via ensureWorld (demo / teaching). */
+  worldSyncCount: number;
   save(): SerializedDocument;
 }
 

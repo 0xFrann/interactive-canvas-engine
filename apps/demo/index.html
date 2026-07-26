@@ -22,18 +22,39 @@
           <button type="button" id="btn-add-root">Add on root</button>
           <button type="button" id="btn-add-child">Add under active</button>
           <button type="button" id="btn-move-frame" class="secondary">Nudge active +40x</button>
+          <button type="button" id="btn-burst" class="secondary">Burst 40 updates</button>
+          <label class="toggle" for="chk-reduce-motion">
+            <input type="checkbox" id="chk-reduce-motion" />
+            30 FPS (reduced motion)
+          </label>
         </div>
       </header>
       <main class="stage">
         <canvas id="board" width="1200" height="720" aria-label="Canvas board"></canvas>
         <aside class="hud" aria-live="polite">
-          <p id="hud-active">active: root</p>
-          <p id="hud-count">nodes: 0</p>
-          <p id="hud-camera">zoom: 1.00 · pan: 0, 0</p>
-          <p class="hint">
-            Drag stickies to move · drop into another box to reparent · drag out of a parent to
-            detach to root · empty/middle-drag pans · scroll zooms.
-          </p>
+          <p class="hud-section">Board</p>
+          <p id="hud-board-active">active: root</p>
+          <p id="hud-board-nodes">nodes: 0</p>
+          <p id="hud-view">zoom: 1.00 · pan: 0, 0</p>
+
+          <p class="hud-section">Display</p>
+          <p id="hud-display">paint clock: measuring…</p>
+
+          <p class="hud-section">Last gesture</p>
+          <p id="hud-gesture">events: 0 · paints: 0</p>
+          <p id="hud-browser">browser samples: 0</p>
+          <p id="hud-saved">engine saved: —</p>
+
+          <details class="hud-help">
+            <summary>What do these mean?</summary>
+            <ul>
+              <li><strong>events</strong> — <code>pointermove</code> dispatches from the browser</li>
+              <li><strong>paints</strong> — our frame ticks that drew the board</li>
+              <li><strong>engine saved</strong> — fewer paints than events (runtime coalesce)</li>
+              <li><strong>browser samples</strong> — hardware polls inside an event; FYI, not our win</li>
+              <li><strong>display Hz</strong> — estimated from the paint clock</li>
+            </ul>
+          </details>
         </aside>
       </main>
     </div>

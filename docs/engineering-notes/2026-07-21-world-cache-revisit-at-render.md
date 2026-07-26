@@ -1,7 +1,7 @@
-# 2026-07-21 — World cache/dirty: park until render pain is real
+# 2026-07-21 — World cache/dirty: early park (superseded by clearer problem framing)
 
-For scene graph v1 we compute world on the fly (sum locals up the parent chain). Cache + dirty flags would help when we *ask* for world so often that walks hurt — e.g. a 60fps paint loop over many nodes while dragging a frame, deep nesting, or rotation/scale matrices — not merely because “parent moves, children follow on screen” (that case is exactly when a cache would need descendants marked dirty).
+Early note assumed on-the-fly world walks and “revisit at render.” We later denormalized world onto nodes (ADR 006) and shipped drag.
 
-This board is create-heavy with occasional drag and no renderer yet, so on-the-fly is enough. **Revisit when building the renderer (and continuous interaction):** if profiling shows repeated parent-chain walks per frame, then add dirty invalidation on `updateNode` / `reparent` and cache world (or matrices) on read.
+**Updated understanding:** see [2026-07-22 — Dirty flags: problem first](./2026-07-22-dirty-input-vs-paint-rate.md). Dirty helps when **derived** updates would run more often than **paints** (or than nodes you actually read). Eager sync remains correct for the demo.
 
-**Interview one-liner:** Local coords stay cheap to mutate; world is derived. Cache only when read frequency makes the walk hot — and dirty the whole subtree when an ancestor moves.
+**Interview one-liner:** Don’t lead with the pattern — lead with “pointer rate vs frame rate,” then dirty as optional deferral.

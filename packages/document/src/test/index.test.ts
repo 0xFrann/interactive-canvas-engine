@@ -177,10 +177,55 @@ describe("createDocument", () => {
 
     expect(child.x).toBe(10);
     expect(child.y).toBe(10);
+    // Worlds stay stale until ensureWorld (dirty deferral).
+    expect(parent.worldX).toBe(0);
+    expect(parent.worldY).toBe(0);
+    expect(child.worldX).toBe(10);
+    expect(child.worldY).toBe(10);
+
+    doc.ensureWorld();
     expect(parent.worldX).toBe(100);
     expect(parent.worldY).toBe(200);
     expect(child.worldX).toBe(110);
     expect(child.worldY).toBe(210);
+  });
+
+  it("should defer subtree world sync across multiple updates until ensureWorld", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    const frame = doc.addNode({ x: 0, y: 0 });
+    const sticky = doc.addNode({ x: 10, y: 10 });
+    doc.selectNode(frame.id);
+
+    doc.updateNode({ x: 50, y: 0 });
+    doc.updateNode({ x: 100, y: 0 });
+    doc.updateNode({ x: 150, y: 0 });
+
+    expect(frame.x).toBe(150);
+    expect(frame.worldX).toBe(0);
+    expect(sticky.worldX).toBe(10);
+
+    doc.ensureWorld();
+    expect(frame.worldX).toBe(150);
+    expect(sticky.worldX).toBe(160);
+  });
+
+  it("should flush a previous dirty root before marking a different node dirty", () => {
+    const doc = new DocumentModel({ name: "Board" });
+    const a = doc.addNode({ x: 0, y: 0 });
+    doc.selectNode("root");
+    const b = doc.addNode({ x: 10, y: 0 });
+
+    doc.selectNode(a.id);
+    doc.updateNode({ x: 40 });
+    expect(a.worldX).toBe(0);
+
+    doc.selectNode(b.id);
+    doc.updateNode({ x: 80 });
+    expect(a.worldX).toBe(40);
+    expect(b.worldX).toBe(10);
+
+    doc.ensureWorld();
+    expect(b.worldX).toBe(80);
   });
 
   it("should set world from parent world + local on add", () => {

@@ -18,8 +18,8 @@ A Mural-like board needs create / nest / select / delete that stay consistent. S
 - **`nodeReferences: Map<id, Node>`:** document-wide O(1) get — stores the **same object references** as the tree (not copies).
 - **`activeNodeId`:** selection / insert cursor as an id (`"root"` or a node id). Matches save/load.
 - **`activeNode` (getter):** resolves via `getNode` / `nodeReferences` — convenience only, not a second stored pointer.
-- **API today:** `addNode({ x, y, width?, height? })` (UUID + parent from active; size defaults 120×80; sets world from parent world + local), `selectNode`, `updateNode` (local pos and/or size; **syncs world subtree only when x/y change**), `reparentNode` (unlink/relink; **preserves world** by rewriting local; cycle-checked), `deleteNode` (subtree purge + unlink), `save` / `DocumentModel.load` (flat JSON; world recomputed on load).
-- **Local vs world:** `x`/`y` relative to parent (persisted). `worldX`/`worldY` board position (runtime only; [ADR 006](./decisions/006-world-on-document-scene-facade.md)). Child locals unchanged when a frame moves; descendant **world** is updated on write. Box size: [ADR 008](./decisions/008-node-width-height.md). Render-facing read: `@canvas-engine/scene-graph` `getWorldPosition`.
+- **API today:** `addNode({ x, y, width?, height? })` (UUID + parent from active; size defaults 120×80; sets world from parent world + local), `selectNode`, `updateNode` (local pos and/or size; **marks `dirtyRootId` when x/y change** — no eager subtree sync), `ensureWorld()` (sync that one subtree), `reparentNode` (unlink/relink; **preserves world** by rewriting local; cycle-checked; flushes first), `deleteNode` (subtree purge + unlink), `save` / `DocumentModel.load` (flat JSON; world recomputed on load).
+- **Local vs world:** `x`/`y` relative to parent (persisted). `worldX`/`worldY` board position (runtime only; [ADR 006](./decisions/006-world-on-document-scene-facade.md)). Child locals unchanged when a frame moves; descendant **world** refreshes on `ensureWorld` ([ADR 014](./decisions/014-dirty-root-ensure-world.md)). Box size: [ADR 008](./decisions/008-node-width-height.md). Render-facing read: `@canvas-engine/scene-graph` `getWorldPosition` (calls `ensureWorld`).
 - **Ids:** created via `crypto.randomUUID()` ([ADR 003](./decisions/003-document-generated-ids.md)); file load preserves stored ids.
 - **Persistence:** file is `{ metadata, nodes[{ id, parentId, x, y, width, height }], activeNodeId }` — no `world*`, no nested `children`, no `nodeReferences`. Load: two-pass link, then sync world from locals. See [ADR 002](./decisions/002-flat-json-persistence.md).
 
@@ -67,8 +67,9 @@ flowchart TB
 | Tree `children` | Containment / subtree reasoning | Structure + index must stay in sync |
 | Flat `nodeReferences` | O(1) get by id; no recursion for lookup | Extra write on add/delete |
 | Same object in both | One source of truth in memory | Easy to break with clones/spreads |
-| Local `x`/`y` | Parent move does not rewrite child locals | Must maintain `world*` on write |
-| Runtime `worldX`/`worldY` | O(1) board position; easy reparent-preserve | Denormalized; sync subtree on local update |
+| Local `x`/`y` | Parent move does not rewrite child locals | Must maintain `world*` before reads |
+| Runtime `worldX`/`worldY` | O(1) board position; easy reparent-preserve | Denormalized; dirty until `ensureWorld` |
+| Single `dirtyRootId` | Sync at paint/read rate for one-drag UX | Multi-root writes flush-on-switch (or need a Set later) |
 | UUID on create | No caller inventing ids; safe after load | Opaque ids in tests/logs |
 | Document-as-root | Empty board is just the document | `Node \| Document` union for cursor |
 | Class for actions | Clear home for operations | Not a perf win/loss at this scale |

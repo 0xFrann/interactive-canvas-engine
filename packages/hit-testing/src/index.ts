@@ -36,6 +36,7 @@ export function hitTest(
   point: WorldPoint,
   options: HitTestOptions = {},
 ): Node["id"] | undefined {
+  doc.ensureWorld();
   let hit: Node["id"] | undefined;
   for (const node of doc.nodeReferences.values()) {
     if (options.ignoreSubtreeOf && isInSubtree(doc, options.ignoreSubtreeOf, node.id)) {
@@ -53,6 +54,7 @@ export function resolveDropParent(
   draggedId: Node["id"],
   cursor: WorldPoint,
 ): Node["id"] | Document["id"] | undefined {
+  doc.ensureWorld();
   const dragged = doc.nodeReferences.get(draggedId);
   if (!dragged) {
     return undefined;
