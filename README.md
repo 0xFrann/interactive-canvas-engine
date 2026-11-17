@@ -4,6 +4,8 @@ Interview prep for [Mural Canvas Core](https://jobs.ashbyhq.com/mural/a88e5ba1-8
 
 North star: [`docs/goal.md`](./docs/goal.md) · Roadmap: [`docs/roadmap.md`](./docs/roadmap.md)
 
+**Live demo:** https://0xfrann.github.io/interactive-canvas-engine/ — click to select, drag empty canvas to pan, scroll to zoom.
+
 ## Packages
 
 | Package | Role |
